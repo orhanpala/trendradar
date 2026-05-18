@@ -80,8 +80,8 @@ def register(payload: AuthPayload):
         })
         return {"success": True, "message": "Kayit basarili."}
     except Exception as e:
-        raise HTTPException(status_code=400, detail="Bu email zaten kayitli veya gecersiz.")
-
+        # Hata mesajini gizleme, Supabase'in verdigi gercek hatayi ekrana bas!
+        raise HTTPException(status_code=400, detail=str(e))
 @app.post("/api/auth/login")
 def login(payload: AuthPayload):
     try:
