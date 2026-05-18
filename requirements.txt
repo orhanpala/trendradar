@@ -7,3 +7,4 @@ httpx
 python-multipart
 pytrends
 pandas
+requests

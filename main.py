@@ -1,3 +1,4 @@
+import requests
 import random
 from datetime import datetime, timedelta
 from fastapi import FastAPI, HTTPException, Request
@@ -368,33 +369,58 @@ def generate_notifications(user_id: str, company_id: int):
         raise HTTPException(status_code=500, detail=str(e))
     
 # ══════════════════════════════
-# TREND RADAR (GOOGLE TRENDS & FALLBACK)
+# TREND RADAR (SERPAPI & FALLBACK)
 # ══════════════════════════════
+import requests
+import random
+from datetime import datetime, timedelta
 
 @app.get("/api/trends")
 def get_real_trends(keyword: str):
     try:
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        api_key = os.getenv("SERPAPI_KEY")
+        if not api_key:
+            raise ValueError("SerpApi anahtari .env dosyasinda bulunamadi.")
+
+        # SerpApi Google Trends Endpoint'i
+        url = "https://serpapi.com/search.json"
+        params = {
+            "engine": "google_trends",
+            "q": keyword,
+            "data_type": "TIMESERIES",
+            "date": "today 1-m", # Son 30 gun
+            "geo": "TR",         # Turkiye verisi
+            "api_key": api_key
         }
+
+        response = requests.get(url, params=params)
+        data = response.json()
+
+        # Eger API kredisinin bitmesi gibi bir hata donerse yakala
+        if "error" in data:
+            raise Exception(f"SerpApi Hatasi: {data['error']}")
+
+        timeline = data.get("interest_over_time", {}).get("timeline_data", [])
         
-        pytrends = TrendReq(hl='tr-TR', tz=-180, requests_args={'headers': headers})
-        pytrends.build_payload([keyword], cat=0, timeframe='today 1-m', geo='TR')
-        data = pytrends.interest_over_time()
-        
-        if data.empty:
+        if not timeline:
             return {"success": False, "message": f"'{keyword}' kelimesi icin Turkiye'de yeterli arama hacmi bulunamadi."}
+
+        labels = []
+        values = []
         
-        labels = [date.strftime('%d %b') for date in data.index]
-        values = data[keyword].tolist()
-        
+        for item in timeline:
+            # SerpApi tarihi "May 13" gibi kisa formatta dondurur
+            labels.append(item.get("date", ""))
+            
+            # 0-100 arasi arama hacmi degerini aliyoruz
+            val_list = item.get("values", [{}])
+            val = val_list[0].get("extracted_value", 0) if val_list else 0
+            values.append(val)
+
         return {"success": True, "labels": labels, "data": values, "is_mock": False}
-        
+
     except Exception as e:
-        # Eger Google (Render IP'si yuzunden) bizi engellerse, sistemi cokertmek yerine
-        # girilen kelimeye ozel, her sorguda ayni cikan gercekci bir simulasyon uretiriz.
-        
-        # Kelimeyi seed olarak kullan (Boylece 'elma' hep ayni grafigi verir, gercekci durur)
+        # SerpApi cokse bile sistem ayakta kalir: Fallback Motoru Devrede
         random.seed(keyword)
         
         labels = []
@@ -405,7 +431,6 @@ def get_real_trends(keyword: str):
             d = datetime.now() - timedelta(days=i)
             labels.append(d.strftime('%d %b'))
             
-            # Trend egilimini gercekci dalgalanmalarla hesapla
             trend_shift = random.randint(-12, 15)
             base_val = max(5, min(100, base_val + trend_shift))
             values.append(base_val)
@@ -414,6 +439,6 @@ def get_real_trends(keyword: str):
             "success": True, 
             "labels": labels, 
             "data": values, 
-            "is_mock": True, # On yuzu bilgilendirmek icin bayrak
-            "message": "Render IP kisitlamasi nedeniyle algoritmik yedekleme (Fallback) devreye girdi."
+            "is_mock": True,
+            "message": f"Gercek veri alinamadi, algoritmik simulasyon devrede."
         }
