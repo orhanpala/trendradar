@@ -54,13 +54,70 @@
   .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
   .topbar { background: var(--white); border-bottom: 1px solid var(--border); padding: 0 32px; height: 62px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
   .topbar-title { font-size: 1.15rem; font-weight: 700; color: var(--dark); letter-spacing: -0.02em; }
-  .topbar-right { display: flex; align-items: center; gap: 16px; }
-  .notif-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
-  .notif-badge { position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: var(--red); border-radius: 50%; border: 2px solid var(--white); }
-  .user-chip { display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 6px; border-radius: 999px; background: var(--bg); border: 1px solid var(--border); cursor: pointer; }
+  .topbar-right { display: flex; align-items: center; gap: 16px; position: relative; }
+
+  /* NOTIF BUTTON */
+  .notif-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; transition: background 0.15s; }
+  .notif-btn:hover { background: var(--orange-light); border-color: var(--orange); }
+  .notif-badge { position: absolute; top: -3px; right: -3px; min-width: 16px; height: 16px; background: var(--red); border-radius: 999px; border: 2px solid var(--white); display: none; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 800; color: var(--white); padding: 0 3px; }
+  .notif-badge.show { display: flex; }
+
+  /* NOTIF PANEL */
+  .notif-panel {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: 360px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    z-index: 999;
+    display: none;
+    overflow: hidden;
+    animation: fadeUp 0.2s ease;
+  }
+  .notif-panel.open { display: block; }
+  .notif-panel-header { padding: 16px 18px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .notif-panel-title { font-size: 0.88rem; font-weight: 800; color: var(--dark); }
+  .notif-read-all { font-size: 0.72rem; font-weight: 600; color: var(--orange); cursor: pointer; }
+  .notif-read-all:hover { text-decoration: underline; }
+  .notif-list { max-height: 340px; overflow-y: auto; }
+  .notif-item { padding: 13px 18px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; display: flex; gap: 12px; align-items: flex-start; }
+  .notif-item:last-child { border-bottom: none; }
+  .notif-item:hover { background: #F8F9FA; }
+  .notif-item.unread { background: #FFFBF5; }
+  .notif-item.unread:hover { background: var(--orange-light); }
+  .notif-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+  .notif-dot.error { background: var(--red); }
+  .notif-dot.warning { background: var(--yellow); }
+  .notif-dot.info { background: #3B82F6; }
+  .notif-dot.success { background: var(--green); }
+  .notif-dot.read { background: var(--border); }
+  .notif-content { flex: 1; min-width: 0; }
+  .notif-title { font-size: 0.8rem; font-weight: 700; color: var(--dark); margin-bottom: 3px; }
+  .notif-msg { font-size: 0.74rem; color: var(--slate); line-height: 1.45; }
+  .notif-time { font-size: 0.68rem; color: var(--slate-light); margin-top: 4px; font-family: 'DM Mono', monospace; }
+  .notif-empty { padding: 32px; text-align: center; color: var(--slate-light); font-size: 0.82rem; }
+  .notif-panel-footer { padding: 12px 18px; border-top: 1px solid var(--border); background: #F8F9FA; }
+  .notif-panel-footer-text { font-size: 0.72rem; color: var(--slate-light); text-align: center; }
+
+  /* USER CHIP */
+  .user-chip { display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 6px; border-radius: 999px; background: var(--bg); border: 1px solid var(--border); cursor: pointer; position: relative; }
+  .user-chip:hover { background: var(--orange-light); }
   .avatar { width: 28px; height: 28px; background: var(--orange); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 800; color: var(--white); }
   .user-name { font-size: 0.8rem; font-weight: 700; color: var(--dark); }
   .user-role { font-size: 0.68rem; color: var(--slate-light); }
+
+  /* USER DROPDOWN */
+  .user-dropdown { position: absolute; top: calc(100% + 8px); right: 0; background: var(--white); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); z-index: 999; min-width: 180px; display: none; overflow: hidden; animation: fadeUp 0.2s ease; }
+  .user-dropdown.open { display: block; }
+  .user-dropdown-email { padding: 12px 16px; font-size: 0.75rem; color: var(--slate-light); border-bottom: 1px solid var(--border); }
+  .user-dropdown-item { padding: 10px 16px; font-size: 0.82rem; color: var(--dark); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.15s; }
+  .user-dropdown-item:hover { background: #F8F9FA; }
+  .user-dropdown-item.danger { color: var(--red); }
+  .user-dropdown-item.danger:hover { background: #FEF2F2; }
+
   .content { flex: 1; overflow-y: auto; padding: 28px 32px; }
   .page { display: none; }
   .page.active { display: block; }
@@ -143,17 +200,16 @@
   .toast.error { border-left: 4px solid var(--red); }
   @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
   .content::-webkit-scrollbar{width:5px} .content::-webkit-scrollbar-track{background:transparent} .content::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+  .notif-list::-webkit-scrollbar{width:4px} .notif-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
 </style>
 </head>
 <body>
 
-<!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="sidebar-logo">
     <div class="logo-mark">trend<span>Radar</span></div>
     <div class="logo-sub">B2B Pazar Zekasi Platformu</div>
   </div>
-
   <div class="store-selector" onclick="toggleStoreDropdown()">
     <div>
       <div class="store-label">Magaza</div>
@@ -162,7 +218,6 @@
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
     <div class="store-dropdown" id="storeDropdown"></div>
   </div>
-
   <nav class="nav">
     <div class="nav-item active" onclick="showPage('kokpit', this)">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
@@ -181,29 +236,56 @@
       Firma Ayarlari
     </div>
   </nav>
-
   <div class="god-mode-btn" onclick="showPage('god', null)">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
     God Mode (Yonetici)
   </div>
 </aside>
 
-<!-- MAIN -->
 <div class="main">
   <header class="topbar">
     <div class="topbar-title" id="pageTitle">Ana Kokpit</div>
     <div class="topbar-right">
-      <div class="notif-btn">
+
+      <!-- Bildirim butonu -->
+      <div class="notif-btn" onclick="toggleNotifPanel(event)" id="notifBtn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
-        <div class="notif-badge"></div>
+        <div class="notif-badge" id="notifBadge"></div>
       </div>
-      <div class="user-chip">
-        <div class="avatar">TR</div>
-        <div>
-          <div class="user-name">TrendRadar</div>
-          <div class="user-role">Sistem Yoneticisi</div>
+
+      <!-- Bildirim paneli -->
+      <div class="notif-panel" id="notifPanel" onclick="event.stopPropagation()">
+        <div class="notif-panel-header">
+          <div class="notif-panel-title">Bildirimler</div>
+          <div class="notif-read-all" onclick="markAllRead()">Tümünü okundu işaretle</div>
+        </div>
+        <div class="notif-list" id="notifList">
+          <div class="notif-empty">Yukleniyor...</div>
+        </div>
+        <div class="notif-panel-footer">
+          <div class="notif-panel-footer-text">Bildirimler kritik stok durumlarinda otomatik olusturulur.</div>
         </div>
       </div>
+
+      <!-- Kullanici chip -->
+      <div class="user-chip" onclick="toggleUserDropdown(event)">
+        <div class="avatar" id="userAvatar">TR</div>
+        <div>
+          <div class="user-name" id="userName">Yukleniyor...</div>
+          <div class="user-role">Sistem Yoneticisi</div>
+        </div>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2.5" style="margin-left:4px"><polyline points="6 9 12 15 18 9"/></svg>
+
+        <!-- Kullanici dropdown -->
+        <div class="user-dropdown" id="userDropdown" onclick="event.stopPropagation()">
+          <div class="user-dropdown-email" id="userEmail">yukleniyor...</div>
+          <div class="user-dropdown-item danger" onclick="logout()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+            Cikis Yap
+          </div>
+        </div>
+      </div>
+
     </div>
   </header>
 
@@ -243,7 +325,6 @@
           </div>
         </div>
       </div>
-
       <div class="bottom-grid">
         <div class="panel">
           <div class="tabs">
@@ -258,9 +339,7 @@
             <div class="panel-title">Urun Listesi</div>
           </div>
           <div style="margin-bottom:12px"></div>
-          <div id="productList" style="max-height:260px;overflow-y:auto;">
-            <div class="empty-state">Yukleniyor...</div>
-          </div>
+          <div id="productList" style="max-height:260px;overflow-y:auto;"><div class="empty-state">Yukleniyor...</div></div>
         </div>
       </div>
     </div>
@@ -283,9 +362,7 @@
           Analizi Calistir
         </button>
       </div>
-      <div class="ai-result-box loading" id="aiResult">
-        Analiz baslatilmadi. Yukaridan bir tur secip "Analizi Calistir" butonuna basin.
-      </div>
+      <div class="ai-result-box loading" id="aiResult">Analiz baslatilmadi. Yukaridan bir tur secip "Analizi Calistir" butonuna basin.</div>
     </div>
 
     <!-- TREND RADARI -->
@@ -312,26 +389,11 @@
         <div class="panel">
           <div class="panel-title" style="margin-bottom:16px">Yeni Firma Kaydi</div>
           <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">Firma Adi</label>
-              <input class="form-input" id="f-name" type="text" placeholder="Acme Ticaret A.S.">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Sektor</label>
-              <input class="form-input" id="f-sector" type="text" placeholder="Elektronik Perakende">
-            </div>
-            <div class="form-group">
-              <label class="form-label">E-posta</label>
-              <input class="form-input" id="f-email" type="email" placeholder="info@firma.com">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Telefon</label>
-              <input class="form-input" id="f-phone" type="text" placeholder="+90 212 000 0000">
-            </div>
-            <div class="form-group full">
-              <label class="form-label">Notlar</label>
-              <textarea class="form-textarea" id="f-notes" placeholder="Opsiyonel aciklama..."></textarea>
-            </div>
+            <div class="form-group"><label class="form-label">Firma Adi</label><input class="form-input" id="f-name" type="text" placeholder="Acme Ticaret A.S."></div>
+            <div class="form-group"><label class="form-label">Sektor</label><input class="form-input" id="f-sector" type="text" placeholder="Elektronik Perakende"></div>
+            <div class="form-group"><label class="form-label">E-posta</label><input class="form-input" id="f-email" type="email" placeholder="info@firma.com"></div>
+            <div class="form-group"><label class="form-label">Telefon</label><input class="form-input" id="f-phone" type="text" placeholder="+90 212 000 0000"></div>
+            <div class="form-group full"><label class="form-label">Notlar</label><textarea class="form-textarea" id="f-notes" placeholder="Opsiyonel aciklama..."></textarea></div>
           </div>
           <button class="form-submit" onclick="createCompany()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -366,17 +428,13 @@
       </div>
       <div style="font-size:0.78rem;font-weight:700;color:var(--dark);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">Tum Firmalar</div>
       <div class="table-wrap">
-        <table>
-          <thead><tr><th>ID</th><th>Firma Adi</th><th>Sektor</th><th>E-posta</th><th>Kayit Tarihi</th></tr></thead>
-          <tbody id="g-companies-table"><tr><td colspan="5" style="text-align:center;color:var(--slate-light)">Yukleniyor...</td></tr></tbody>
-        </table>
+        <table><thead><tr><th>ID</th><th>Firma Adi</th><th>Sektor</th><th>E-posta</th><th>Kayit Tarihi</th></tr></thead>
+        <tbody id="g-companies-table"><tr><td colspan="5" style="text-align:center;color:var(--slate-light)">Yukleniyor...</td></tr></tbody></table>
       </div>
       <div style="font-size:0.78rem;font-weight:700;color:var(--dark);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">Kritik Stok Alti Urunler</div>
       <div class="table-wrap">
-        <table>
-          <thead><tr><th>Urun</th><th>Kategori</th><th>Fiyat</th><th>Stok</th><th>Durum</th></tr></thead>
-          <tbody id="g-lowstock-table"><tr><td colspan="5" style="text-align:center;color:var(--slate-light)">Yukleniyor...</td></tr></tbody>
-        </table>
+        <table><thead><tr><th>Urun</th><th>Kategori</th><th>Fiyat</th><th>Stok</th><th>Durum</th></tr></thead>
+        <tbody id="g-lowstock-table"><tr><td colspan="5" style="text-align:center;color:var(--slate-light)">Yukleniyor...</td></tr></tbody></table>
       </div>
     </div>
 
@@ -387,17 +445,33 @@
 
 <script>
 const API = '';
+let state = { companies: [], selectedCompanyId: null, products: [], mainChartInst: null, trendChartInst: null, csvProducts: [], user: null, notifications: [] };
 
-let state = {
-  companies: [],
-  selectedCompanyId: null,
-  products: [],
-  mainChartInst: null,
-  trendChartInst: null,
-  csvProducts: [],
-};
+// ── AUTH CHECK ──
+function checkAuth() {
+  const token = localStorage.getItem('tr_token');
+  const user = localStorage.getItem('tr_user');
+  if (!token || !user) { window.location.href = '/'; return false; }
+  state.user = JSON.parse(user);
+  const initials = state.user.email.substring(0, 2).toUpperCase();
+  document.getElementById('userAvatar').textContent = initials;
+  document.getElementById('userName').textContent = state.user.email.split('@')[0];
+  document.getElementById('userEmail').textContent = state.user.email;
+  return true;
+}
 
-// TOAST
+function authHeaders() {
+  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('tr_token')}` };
+}
+
+async function logout() {
+  try { await fetch('/api/auth/logout', { method: 'POST', headers: authHeaders() }); } catch(e) {}
+  localStorage.removeItem('tr_token');
+  localStorage.removeItem('tr_user');
+  window.location.href = '/';
+}
+
+// ── TOAST ──
 function toast(msg, type = 'success') {
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -405,27 +479,120 @@ function toast(msg, type = 'success') {
   setTimeout(() => el.classList.remove('show'), 3000);
 }
 
-// API
+// ── API ──
 async function apiFetch(path, opts = {}) {
-  const res = await fetch(API + path, { headers: { 'Content-Type': 'application/json' }, ...opts });
+  const res = await fetch(API + path, { headers: authHeaders(), ...opts });
+  if (res.status === 401) { logout(); return; }
   if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.detail || res.statusText); }
   return res.json();
 }
 
-// INIT
+// ── INIT ──
 async function init() {
+  if (!checkAuth()) return;
   try {
     const data = await apiFetch('/api/companies');
     state.companies = data.data;
     if (state.companies.length > 0) state.selectedCompanyId = state.companies[0].id;
     renderStoreDropdown();
     await loadKokpit();
-  } catch (e) {
-    toast('Sunucuya baglanilamadi: ' + e.message, 'error');
-  }
+    await loadNotifications();
+    // Her 60 saniyede bildirimleri yenile
+    setInterval(loadNotifications, 60000);
+    // Kritik stok bildirimlerini otomatik olustur
+    if (state.selectedCompanyId && state.user) {
+      generateAutoNotifications();
+    }
+  } catch (e) { toast('Sunucuya baglanilamadi: ' + e.message, 'error'); }
 }
 
-// STORE DROPDOWN
+// ── NOTIFICATIONS ──
+async function loadNotifications() {
+  if (!state.user) return;
+  try {
+    const data = await apiFetch(`/api/notifications?user_id=${state.user.id}`);
+    state.notifications = data.data || [];
+    const unread = data.unread || 0;
+    const badge = document.getElementById('notifBadge');
+    badge.textContent = unread > 9 ? '9+' : unread;
+    unread > 0 ? badge.classList.add('show') : badge.classList.remove('show');
+    renderNotifList();
+  } catch(e) {}
+}
+
+function renderNotifList() {
+  const el = document.getElementById('notifList');
+  if (!state.notifications.length) {
+    el.innerHTML = '<div class="notif-empty">Bildirim bulunmuyor.</div>';
+    return;
+  }
+  const typeColors = { error: 'error', warning: 'warning', info: 'info', success: 'success' };
+  el.innerHTML = state.notifications.map(n => `
+    <div class="notif-item ${n.is_read ? '' : 'unread'}" onclick="markRead(${n.id})">
+      <div class="notif-dot ${n.is_read ? 'read' : (typeColors[n.type] || 'info')}"></div>
+      <div class="notif-content">
+        <div class="notif-title">${n.title}</div>
+        <div class="notif-msg">${n.message}</div>
+        <div class="notif-time">${formatTime(n.created_at)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function markRead(id) {
+  try {
+    await apiFetch(`/api/notifications/${id}/read`, { method: 'PATCH' });
+    await loadNotifications();
+  } catch(e) {}
+}
+
+async function markAllRead() {
+  if (!state.user) return;
+  try {
+    await apiFetch(`/api/notifications/read-all?user_id=${state.user.id}`, { method: 'PATCH' });
+    await loadNotifications();
+    toast('Tum bildirimler okundu olarak isaretlendi.');
+  } catch(e) {}
+}
+
+async function generateAutoNotifications() {
+  if (!state.user || !state.selectedCompanyId) return;
+  try {
+    await apiFetch(`/api/notifications/generate?user_id=${state.user.id}&company_id=${state.selectedCompanyId}`, { method: 'POST' });
+    await loadNotifications();
+  } catch(e) {}
+}
+
+function formatTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = Math.floor((now - d) / 1000);
+  if (diff < 60) return 'Az once';
+  if (diff < 3600) return `${Math.floor(diff/60)} dk once`;
+  if (diff < 86400) return `${Math.floor(diff/3600)} saat once`;
+  return d.toLocaleDateString('tr-TR');
+}
+
+function toggleNotifPanel(e) {
+  e.stopPropagation();
+  document.getElementById('userDropdown').classList.remove('open');
+  document.getElementById('notifPanel').classList.toggle('open');
+}
+
+function toggleUserDropdown(e) {
+  e.stopPropagation();
+  document.getElementById('notifPanel').classList.remove('open');
+  document.getElementById('userDropdown').classList.toggle('open');
+}
+
+document.addEventListener('click', () => {
+  document.getElementById('notifPanel').classList.remove('open');
+  document.getElementById('userDropdown').classList.remove('open');
+  document.getElementById('storeDropdown').classList.remove('open');
+});
+
+// ── STORE ──
 function renderStoreDropdown() {
   const cur = state.companies.find(c => c.id === state.selectedCompanyId);
   document.getElementById('selectedStoreName').textContent = cur ? cur.name : 'Firma Yok';
@@ -434,9 +601,7 @@ function renderStoreDropdown() {
   ).join('');
 }
 
-function toggleStoreDropdown() {
-  document.getElementById('storeDropdown').classList.toggle('open');
-}
+function toggleStoreDropdown() { document.getElementById('storeDropdown').classList.toggle('open'); }
 
 async function selectCompany(id, e) {
   e.stopPropagation();
@@ -445,12 +610,10 @@ async function selectCompany(id, e) {
   renderStoreDropdown();
   const active = document.querySelector('.page.active').id.replace('page-', '');
   if (active === 'kokpit') await loadKokpit();
-  if (active === 'otonom') { document.getElementById('aiResult').className = 'ai-result-box loading'; document.getElementById('aiResult').textContent = 'Yeni firma secildi. Analizi yeniden calistirin.'; }
+  generateAutoNotifications();
 }
 
-document.addEventListener('click', () => document.getElementById('storeDropdown').classList.remove('open'));
-
-// NAV
+// ── NAV ──
 function showPage(name, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -462,7 +625,7 @@ function showPage(name, el) {
   if (name === 'god') loadGodMode();
 }
 
-// KOKPIT
+// ── KOKPIT ──
 async function loadKokpit() {
   if (!state.selectedCompanyId) return;
   try {
@@ -495,7 +658,7 @@ function renderMainChart() {
   const labels = Object.keys(catMap);
   state.mainChartInst = new Chart(ctx, {
     type: 'bar',
-    data: { labels, datasets: [{ label: 'Stok', data: Object.values(catMap), backgroundColor: colors.slice(0, labels.length), borderRadius: 6, borderSkipped: false }] },
+    data: { labels, datasets: [{ data: Object.values(catMap), backgroundColor: colors.slice(0, labels.length), borderRadius: 6, borderSkipped: false }] },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1E293B' } }, scales: { x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', size: 11 }, color: '#94A3B8' } }, y: { grid: { color: '#F1F5F9' }, ticks: { font: { family: 'DM Mono', size: 10 }, color: '#94A3B8' } } } }
   });
 }
@@ -525,7 +688,7 @@ function renderProductList() {
   `).join('');
 }
 
-// AI
+// ── AI ──
 async function runAiAnalysis() {
   if (!state.selectedCompanyId) { toast('Once bir firma secin.', 'error'); return; }
   const type = document.getElementById('analysisType').value;
@@ -549,7 +712,7 @@ async function runAiAnalysis() {
   }
 }
 
-// TREND
+// ── TREND ──
 function renderTrendChart() {
   const kw = document.getElementById('trendInput').value.trim() || 'Genel';
   document.getElementById('trendPanelTitle').textContent = `"${kw}" — Talep Trend Grafigi`;
@@ -572,7 +735,7 @@ function renderTrendChart() {
   });
 }
 
-// FIRMA
+// ── FIRMA ──
 async function createCompany() {
   const name = document.getElementById('f-name').value.trim();
   if (!name) { toast('Firma adi zorunludur.', 'error'); return; }
@@ -595,17 +758,14 @@ function handleCsvUpload(event) {
     const lines = e.target.result.split('\n').filter(l => l.trim());
     const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
     state.csvProducts = lines.slice(1).map(line => {
-      const vals = line.split(',');
-      const obj = {};
+      const vals = line.split(','); const obj = {};
       headers.forEach((h, i) => obj[h] = vals[i]?.trim() || '');
       return obj;
     }).filter(p => p.name);
     document.getElementById('csvPreviewTable').innerHTML = `
       <div style="font-size:0.75rem;color:var(--slate);margin-bottom:8px">${state.csvProducts.length} urun bulundu</div>
-      <div class="table-wrap"><table>
-        <thead><tr><th>Ad</th><th>Kategori</th><th>Fiyat</th><th>Stok</th></tr></thead>
-        <tbody>${state.csvProducts.slice(0,5).map(p=>`<tr><td>${p.name}</td><td>${p.category||'-'}</td><td>${p.price||'-'}</td><td>${p.stock||'-'}</td></tr>`).join('')}</tbody>
-      </table></div>`;
+      <div class="table-wrap"><table><thead><tr><th>Ad</th><th>Kategori</th><th>Fiyat</th><th>Stok</th></tr></thead>
+      <tbody>${state.csvProducts.slice(0,5).map(p=>`<tr><td>${p.name}</td><td>${p.category||'-'}</td><td>${p.price||'-'}</td><td>${p.stock||'-'}</td></tr>`).join('')}</tbody></table></div>`;
     document.getElementById('csvPreview').style.display = 'block';
   };
   reader.readAsText(file);
@@ -623,14 +783,10 @@ async function uploadCsvProducts() {
   } catch (e) { toast('Yukleme hatasi: ' + e.message, 'error'); }
 }
 
-// GOD MODE
+// ── GOD MODE ──
 async function loadGodMode() {
   try {
-    const [stats, companies, lowStock] = await Promise.all([
-      apiFetch('/api/stats'),
-      apiFetch('/api/companies'),
-      apiFetch('/api/products/low-stock?threshold=10'),
-    ]);
+    const [stats, companies, lowStock] = await Promise.all([apiFetch('/api/stats'), apiFetch('/api/companies'), apiFetch('/api/products/low-stock?threshold=10')]);
     document.getElementById('g-companies').innerHTML = `${stats.total_companies} <span>firma</span>`;
     document.getElementById('g-products').innerHTML = `${stats.total_products} <span>urun</span>`;
     document.getElementById('g-stock').innerHTML = `${(stats.total_stock||0).toLocaleString('tr-TR')} <span>adet</span>`;

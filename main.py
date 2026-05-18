@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,26 +19,93 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Static dosyalar (HTML)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Supabase client
+
 def get_db() -> Client:
     return create_client(
         os.getenv("SUPABASE_URL"),
         os.getenv("SUPABASE_KEY")
     )
 
-# Gemini
+
+def get_authed_db(token: str) -> Client:
+    client = create_client(
+        os.getenv("SUPABASE_URL"),
+        os.getenv("SUPABASE_KEY")
+    )
+    client.auth.set_session(token, "")
+    return client
+
+
 def get_gemini():
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
     return genai.GenerativeModel("gemini-1.5-pro")
 
 
-# ── Ana sayfa ──
+# ── PAGES ──
 @app.get("/")
 def root():
+    return FileResponse("static/login.html")
+
+@app.get("/dashboard")
+def dashboard():
     return FileResponse("static/trendradar.html")
+
+
+# ══════════════════════════════
+# AUTH
+# ══════════════════════════════
+
+class AuthPayload(BaseModel):
+    email: str
+    password: str
+
+@app.post("/api/auth/login")
+def login(payload: AuthPayload):
+    try:
+        db = get_db()
+        res = db.auth.sign_in_with_password({
+            "email": payload.email,
+            "password": payload.password
+        })
+        return {
+            "access_token": res.session.access_token,
+            "refresh_token": res.session.refresh_token,
+            "user": {
+                "id": res.user.id,
+                "email": res.user.email,
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Email veya sifre yanlis.")
+
+@app.post("/api/auth/logout")
+def logout(request: Request):
+    try:
+        token = request.headers.get("Authorization", "").replace("Bearer ", "")
+        db = get_db()
+        db.auth.sign_out()
+        return {"success": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/auth/me")
+def get_me(request: Request):
+    try:
+        token = request.headers.get("Authorization", "").replace("Bearer ", "")
+        if not token:
+            raise HTTPException(status_code=401, detail="Token bulunamadi.")
+        db = get_db()
+        user = db.auth.get_user(token)
+        return {
+            "id": user.user.id,
+            "email": user.user.email,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Gecersiz token.")
 
 
 # ══════════════════════════════
@@ -54,7 +121,6 @@ def get_companies():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @app.get("/api/companies/{company_id}")
 def get_company(company_id: int):
     try:
@@ -67,7 +133,6 @@ def get_company(company_id: int):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 class CompanyCreate(BaseModel):
     name: str
@@ -104,7 +169,6 @@ def get_products(company_id: int, category: str = None, min_stock: int = None):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 class ProductCreate(BaseModel):
     company_id: int
     name: str
@@ -121,7 +185,6 @@ def create_product(payload: ProductCreate):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @app.post("/api/products/bulk")
 def bulk_create_products(products: list[ProductCreate]):
     try:
@@ -132,19 +195,18 @@ def bulk_create_products(products: list[ProductCreate]):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @app.get("/api/products/low-stock")
 def low_stock(threshold: int = 10):
     try:
         db = get_db()
-        res = db.table("products").select("*, companies(name)").lt("stock", threshold).execute()
+        res = db.table("products").select("*").lt("stock", threshold).execute()
         return {"data": res.data, "count": len(res.data)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 # ══════════════════════════════
-# STATS (God Mode)
+# STATS
 # ══════════════════════════════
 
 @app.get("/api/stats")
@@ -152,15 +214,13 @@ def get_stats():
     try:
         db = get_db()
         companies = db.table("companies").select("id", count="exact").execute()
-        products  = db.table("products").select("id, stock, category", count="exact").execute()
-
+        products = db.table("products").select("id, stock, category", count="exact").execute()
         total_stock = sum(p["stock"] for p in products.data)
-        categories  = len(set(p["category"] for p in products.data if p["category"]))
-
+        categories = len(set(p["category"] for p in products.data if p["category"]))
         return {
             "total_companies": companies.count,
-            "total_products":  products.count,
-            "total_stock":     total_stock,
+            "total_products": products.count,
+            "total_stock": total_stock,
             "unique_categories": categories,
         }
     except Exception as e:
@@ -168,7 +228,7 @@ def get_stats():
 
 
 # ══════════════════════════════
-# AI — Otonom Aksiyonlar
+# AI
 # ══════════════════════════════
 
 class AiRequest(BaseModel):
@@ -178,18 +238,15 @@ class AiRequest(BaseModel):
 @app.post("/api/ai/analyze")
 def ai_analyze(req: AiRequest):
     try:
-        db     = get_db()
-        model  = get_gemini()
-
+        db = get_db()
+        model = get_gemini()
         products_res = db.table("products").select("*").eq("company_id", req.company_id).execute()
         if not products_res.data:
             raise HTTPException(status_code=404, detail="Bu firmaya ait urun bulunamadi.")
-
         product_text = "\n".join([
             f"- {p['name']} | Kategori: {p['category']} | Fiyat: {p['price']} TL | Stok: {p['stock']} adet"
             for p in products_res.data
         ])
-
         prompts = {
             "fiyatlandirma": f"""Sen deneyimli bir B2B fiyatlandirma stratejistisin.
 Asagidaki urun portfoyunu incele. Her urun icin net aksiyon onerisi ver:
@@ -198,7 +255,6 @@ Turkce, profesyonel ve madde madde yaz.
 
 Urunler:
 {product_text}""",
-
             "stok": f"""Sen bir tedarik zinciri uzmanisın.
 Asagidaki stok verilerini incele.
 Kritik stok altındaki urunler, fazla stok problemi olanlar ve devir hizi dusuk urunler icin somut oneriler sun.
@@ -206,7 +262,6 @@ Turkce, profesyonel ve madde madde yaz.
 
 Urunler:
 {product_text}""",
-
             "genel": f"""Sen bir B2B strateji danismanisin.
 Bu urun portfoyunu bir butun olarak degerlendirerek kisa ve orta vadeli stratejik oneriler sun.
 Turkce, profesyonel yaz.
@@ -214,13 +269,80 @@ Turkce, profesyonel yaz.
 Urunler:
 {product_text}"""
         }
-
-        prompt   = prompts.get(req.analysis_type, prompts["fiyatlandirma"])
+        prompt = prompts.get(req.analysis_type, prompts["fiyatlandirma"])
         response = model.generate_content(prompt)
-
         return {"success": True, "result": response.text}
-
     except HTTPException:
         raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ══════════════════════════════
+# NOTIFICATIONS
+# ══════════════════════════════
+
+class NotificationCreate(BaseModel):
+    user_id: str
+    company_id: int
+    title: str
+    message: str
+    type: str = "info"
+
+@app.get("/api/notifications")
+def get_notifications(request: Request, user_id: str):
+    try:
+        db = get_db()
+        res = db.table("notifications").select("*").eq("user_id", user_id).order("created_at", desc=True).limit(20).execute()
+        return {"data": res.data, "unread": sum(1 for n in res.data if not n["is_read"])}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/notifications")
+def create_notification(payload: NotificationCreate):
+    try:
+        db = get_db()
+        res = db.table("notifications").insert(payload.dict()).execute()
+        return {"success": True, "data": res.data[0]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.patch("/api/notifications/{notification_id}/read")
+def mark_read(notification_id: int):
+    try:
+        db = get_db()
+        db.table("notifications").update({"is_read": True}).eq("id", notification_id).execute()
+        return {"success": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.patch("/api/notifications/read-all")
+def mark_all_read(user_id: str):
+    try:
+        db = get_db()
+        db.table("notifications").update({"is_read": True}).eq("user_id", user_id).execute()
+        return {"success": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/notifications/generate")
+def generate_notifications(user_id: str, company_id: int):
+    """Kritik stok altı ürünler için otomatik bildirim üretir."""
+    try:
+        db = get_db()
+        low = db.table("products").select("*").eq("company_id", company_id).lt("stock", 10).execute()
+        created = 0
+        for p in low.data:
+            existing = db.table("notifications").select("id").eq("user_id", user_id).eq("title", f"Kritik Stok: {p['name']}").eq("is_read", False).execute()
+            if not existing.data:
+                db.table("notifications").insert({
+                    "user_id": user_id,
+                    "company_id": company_id,
+                    "title": f"Kritik Stok: {p['name']}",
+                    "message": f"{p['name']} icin stok kritik seviyede. Mevcut stok: {p['stock']} adet. Acil siparis verilmesi onerilir.",
+                    "type": "error"
+                }).execute()
+                created += 1
+        return {"success": True, "created": created}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
