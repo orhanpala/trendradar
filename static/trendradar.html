@@ -252,6 +252,68 @@
   @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
   .content::-webkit-scrollbar{width:5px} .content::-webkit-scrollbar-track{background:transparent} .content::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
   .notif-list::-webkit-scrollbar{width:4px} .notif-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+  /* ── MOBİL UYUM (RESPONSIVE) SİHİRBAZI ── */
+  @media (max-width: 768px) {
+    /* Ana Taşıyıcıyı Yan Yana Değil, Alt Alta Diz */
+    .app-container { flex-direction: column !important; }
+    
+    /* Sol Menüyü Üste Al ve Sabitlikten Çıkar */
+    .sidebar { 
+      width: 100% !important; 
+      height: auto !important; 
+      position: static !important;
+      padding: 15px !important;
+      border-right: none !important;
+      border-bottom: 1px solid #334155 !important;
+    }
+    
+    /* Menü Butonlarını 2x2 Şık Grid Haline Getir */
+    .nav { 
+      flex-direction: row !important; 
+      flex-wrap: wrap !important; 
+      gap: 10px !important;
+    }
+    .nav-item { 
+      flex: 1 1 45% !important; 
+      justify-content: center !important; 
+      padding: 12px !important;
+      font-size: 0.8rem !important;
+      margin-bottom: 0 !important;
+    }
+    
+    /* God Mode Butonunu Alta Yasla */
+    .god-mode-btn { margin-top: 10px !important; }
+    
+    /* Sağ Tarafı (Ana İçeriği) Ekrana Tam Sığdır */
+    .main-content { 
+      padding: 15px !important; 
+      margin-left: 0 !important; 
+      width: 100% !important;
+    }
+    
+    /* Tüm İstatistik Kartlarını ve Grafikleri Alt Alta Diz */
+    .dashboard-grid, .stats-grid, [style*="grid-template-columns"] { 
+      grid-template-columns: 1fr !important; 
+      gap: 15px !important; 
+    }
+    
+    /* Başlık ve Butonları Telefondaki Gibi Alta Alta Sırala */
+    .header-row, .page-header { 
+      flex-direction: column !important; 
+      align-items: flex-start !important; 
+      gap: 12px !important; 
+    }
+    .header-row button, .page-header button { width: 100% !important; }
+    
+    /* Tabloların Ekrana Taşmasını Engelle (Yatay Scroll Ekle) */
+    .table-wrap, .table-container { 
+      overflow-x: auto !important; 
+      -webkit-overflow-scrolling: touch; 
+    }
+    
+    /* Yeni Firma Ekleme Sihirbazını Sıkıştır */
+    .wizard-pane { padding: 15px !important; }
+  }
 </style>
 </head>
 <body>
