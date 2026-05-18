@@ -130,25 +130,41 @@ def get_me(request: Request):
 
 
 # ══════════════════════════════
+# YARDIMCI FONKSIYON: GÜVENLİK
+# ══════════════════════════════
+def get_current_user_id(request: Request) -> str:
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    if not token:
+        raise HTTPException(status_code=401, detail="Yetkisiz erisim.")
+    db = get_db()
+    user_res = db.auth.get_user(token)
+    if not user_res or not user_res.user:
+        raise HTTPException(status_code=401, detail="Gecersiz oturum.")
+    return user_res.user.id
+
+# ══════════════════════════════
 # COMPANIES
 # ══════════════════════════════
 
 @app.get("/api/companies")
-def get_companies():
+def get_companies(request: Request):
     try:
+        user_id = get_current_user_id(request)
         db = get_db()
-        res = db.table("companies").select("*").order("created_at", desc=False).execute()
+        # Sadece giris yapan kullaniciya ait firmalari getir
+        res = db.table("companies").select("*").eq("user_id", user_id).order("created_at", desc=False).execute()
         return {"data": res.data, "count": len(res.data)}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/companies/{company_id}")
-def get_company(company_id: int):
+def get_company(request: Request, company_id: int):
     try:
+        user_id = get_current_user_id(request)
         db = get_db()
-        res = db.table("companies").select("*").eq("id", company_id).execute()
+        res = db.table("companies").select("*").eq("id", company_id).eq("user_id", user_id).execute()
         if not res.data:
-            raise HTTPException(status_code=404, detail="Firma bulunamadi.")
+            raise HTTPException(status_code=404, detail="Firma bulunamadi veya erisim yetkiniz yok.")
         return res.data[0]
     except HTTPException:
         raise
@@ -163,10 +179,13 @@ class CompanyCreate(BaseModel):
     notes: str = ""
 
 @app.post("/api/companies")
-def create_company(payload: CompanyCreate):
+def create_company(request: Request, payload: CompanyCreate):
     try:
+        user_id = get_current_user_id(request)
         db = get_db()
-        res = db.table("companies").insert(payload.dict()).execute()
+        data = payload.dict()
+        data["user_id"] = user_id # Yeni firmayi, olusturan hesaba zimmetle
+        res = db.table("companies").insert(data).execute()
         return {"success": True, "data": res.data[0]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
