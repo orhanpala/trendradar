@@ -188,6 +188,24 @@
   .upload-zone-text { font-size: 0.85rem; font-weight: 600; color: var(--slate); }
   .upload-zone-sub { font-size: 0.72rem; color: var(--slate-light); margin-top: 4px; }
 
+  /* WIZARD (SIHIRBAZ) TASARIMI */
+  .wizard-container { background: var(--white); border: 1px solid var(--border); border-radius: 16px; padding: 32px 40px; box-shadow: var(--card-shadow); max-width: 800px; margin: 0 auto; }
+  .wizard-header { display: flex; justify-content: space-between; position: relative; margin-bottom: 40px; }
+  .wizard-header::before { content: ''; position: absolute; top: 14px; left: 0; right: 0; height: 2px; background: var(--border); z-index: 1; }
+  .wizard-step { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 8px; background: var(--white); padding: 0 10px; }
+  .wizard-step-circle { width: 30px; height: 30px; border-radius: 50%; background: var(--bg); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; color: var(--slate-light); transition: all 0.3s; }
+  .wizard-step.active .wizard-step-circle { background: var(--orange); border-color: var(--orange); color: var(--white); }
+  .wizard-step.completed .wizard-step-circle { background: var(--green); border-color: var(--green); color: var(--white); }
+  .wizard-step-label { font-size: 0.8rem; font-weight: 700; color: var(--slate-light); transition: color 0.3s; }
+  .wizard-step.active .wizard-step-label, .wizard-step.completed .wizard-step-label { color: var(--dark); }
+  .wizard-pane { display: none; animation: fadeUp 0.3s ease; }
+  .wizard-pane.active { display: block; }
+  .wizard-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px; border-top: 1px solid var(--border); padding-top: 24px; }
+  .btn-secondary { padding: 10px 24px; background: var(--bg); color: var(--dark); border: 1px solid var(--border); border-radius: 9px; font-family: inherit; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .btn-secondary:hover { background: #E2E8F0; }
+  .form-submit:disabled { background: var(--slate-light); cursor: not-allowed; }
+  .success-icon-wrap { width: 80px; height: 80px; background: #F0FDF4; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: var(--green); }
+
   /* GOD MODE */
   .god-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
   .god-metric { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 18px; box-shadow: var(--card-shadow); }
@@ -393,40 +411,68 @@
     </div>
 
     <!-- FIRMA AYARLARI -->
-    <div class="page" id="page-firma">
-      <div class="section-title">Firma Ayarlari</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-        <div class="panel">
-          <div class="panel-title" style="margin-bottom:16px">Yeni Firma Kaydi</div>
+   <div class="page" id="page-firma">
+      <div class="section-title" style="text-align: center; margin-bottom: 24px;">Firma Kurulum Sihirbazı</div>
+      
+      <div class="wizard-container">
+        <div class="wizard-header">
+          <div class="wizard-step active" id="w-step-1"><div class="wizard-step-circle">1</div><div class="wizard-step-label">Firma Bilgileri</div></div>
+          <div class="wizard-step" id="w-step-2"><div class="wizard-step-circle">2</div><div class="wizard-step-label">Envanter Yükleme</div></div>
+          <div class="wizard-step" id="w-step-3"><div class="wizard-step-circle">3</div><div class="wizard-step-label">Tamamlandı</div></div>
+        </div>
+
+        <div class="wizard-pane active" id="w-pane-1">
+          <div class="panel-title" style="margin-bottom:16px">Yeni Firma Detaylarını Girin</div>
           <div class="form-grid">
-            <div class="form-group"><label class="form-label">Firma Adi</label><input class="form-input" id="f-name" type="text" placeholder="Acme Ticaret A.S."></div>
-            <div class="form-group"><label class="form-label">Sektor</label><input class="form-input" id="f-sector" type="text" placeholder="Elektronik Perakende"></div>
+            <div class="form-group"><label class="form-label">Firma Adı</label><input class="form-input" id="f-name" type="text" placeholder="Acme Ticaret A.Ş."></div>
+            <div class="form-group"><label class="form-label">Sektör</label><input class="form-input" id="f-sector" type="text" placeholder="Elektronik Perakende"></div>
             <div class="form-group"><label class="form-label">E-posta</label><input class="form-input" id="f-email" type="email" placeholder="info@firma.com"></div>
             <div class="form-group"><label class="form-label">Telefon</label><input class="form-input" id="f-phone" type="text" placeholder="+90 212 000 0000"></div>
-            <div class="form-group full"><label class="form-label">Notlar</label><textarea class="form-textarea" id="f-notes" placeholder="Opsiyonel aciklama..."></textarea></div>
+            <div class="form-group full"><label class="form-label">Notlar</label><textarea class="form-textarea" id="f-notes" placeholder="Kurumsal notlar veya fatura adresi..."></textarea></div>
           </div>
-          <button class="form-submit" onclick="createCompany()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Firmаyi Kaydet
-          </button>
+          <div class="wizard-actions">
+            <button class="form-submit" onclick="processWizardStep1()" id="btn-w-1">Kaydet ve Devam Et</button>
+          </div>
         </div>
-        <div class="panel">
-          <div class="panel-title" style="margin-bottom:4px">CSV ile Toplu Urun Yukleme</div>
-          <div class="panel-sub">Beklenen sutunlar: name, category, price, stock</div>
+
+        <div class="wizard-pane" id="w-pane-2">
+          <div class="panel-title" style="margin-bottom:4px">CSV ile Toplu Ürün Yükleme</div>
+          <div class="panel-sub" id="wizard-company-name-label">Firma başarıyla oluşturuldu. Şimdi envanteri içeri aktarın.</div>
+          
           <div class="upload-zone" onclick="document.getElementById('csvFile').click()">
             <svg class="upload-zone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            <div class="upload-zone-text">CSV dosyasini surukleyin veya tiklayin</div>
-            <div class="upload-zone-sub" id="csvFileName">.csv formati, maksimum 10 MB</div>
+            <div class="upload-zone-text">CSV dosyasını sürükleyin veya tıklayın</div>
+            <div class="upload-zone-sub" id="csvFileName">Gerekli Sütunlar: name, category, price, stock (Maks. 10 MB)</div>
             <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="handleCsvUpload(event)">
           </div>
+          
           <div id="csvPreview" style="margin-top:14px;display:none">
             <div id="csvPreviewTable"></div>
-            <button class="form-submit" style="margin-top:12px" onclick="uploadCsvProducts()">Urunleri Yukle</button>
+          </div>
+          
+          <div class="wizard-actions">
+            <button class="btn-secondary" onclick="skipToStep3()">Şimdilik Atla</button>
+            <button class="form-submit" onclick="processWizardStep2()" id="btn-w-2" disabled>Ürünleri Yükle ve Tamamla</button>
           </div>
         </div>
+
+        <div class="wizard-pane" id="w-pane-3">
+          <div style="text-align:center; padding: 20px 0;">
+            <div class="success-icon-wrap">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="panel-title" style="font-size:1.4rem; margin-bottom: 8px;">Kurulum Tamamlandı!</div>
+            <div class="panel-sub">Yeni firma ve ürünleri sisteme başarıyla kaydedildi. Artık otonom analizleri başlatabilirsiniz.</div>
+            
+            <div class="wizard-actions" style="justify-content: center; border:none; margin-top: 24px;">
+              <button class="btn-secondary" onclick="resetWizard()">Yeni Firma Ekle</button>
+              <button class="form-submit" onclick="finishWizard()">Ana Kokpite Git</button>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
-
     <!-- GOD MODE -->
     <div class="page" id="page-god">
       <div class="section-title">God Mode — Admin Paneli</div>
@@ -807,18 +853,7 @@ async function renderTrendChart() {
 }
 
 // ── FIRMA ──
-async function createCompany() {
-  const name = document.getElementById('f-name').value.trim();
-  if (!name) { toast('Firma adi zorunludur.', 'error'); return; }
-  try {
-    await apiFetch('/api/companies', { method: 'POST', body: JSON.stringify({ name, sector: document.getElementById('f-sector').value, email: document.getElementById('f-email').value, phone: document.getElementById('f-phone').value, notes: document.getElementById('f-notes').value }) });
-    toast(`"${name}" basariyla eklendi.`);
-    ['f-name','f-sector','f-email','f-phone','f-notes'].forEach(id => document.getElementById(id).value = '');
-    const data = await apiFetch('/api/companies');
-    state.companies = data.data;
-    renderStoreDropdown();
-  } catch (e) { toast('Kayit hatasi: ' + e.message, 'error'); }
-}
+
 
 function handleCsvUpload(event) {
   const file = event.target.files[0];
@@ -842,16 +877,147 @@ function handleCsvUpload(event) {
   reader.readAsText(file);
 }
 
-async function uploadCsvProducts() {
-  if (!state.selectedCompanyId) { toast('Once bir firma secin.', 'error'); return; }
-  if (!state.csvProducts.length) { toast('Yuklenecek urun yok.', 'error'); return; }
+// ── FIRMA KURULUM SIHIRBAZI ──
+let wizardCreatedCompanyId = null;
+
+async function processWizardStep1() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { toast('Firma adı zorunludur.', 'error'); return; }
+  
+  const btn = document.getElementById('btn-w-1');
+  btn.disabled = true;
+  btn.textContent = 'Kaydediliyor...';
+  
   try {
-    const products = state.csvProducts.map(p => ({ company_id: state.selectedCompanyId, name: p.name, category: p.category||'', price: parseFloat(p.price)||0, stock: parseInt(p.stock)||0 }));
+    const res = await apiFetch('/api/companies', { 
+      method: 'POST', 
+      body: JSON.stringify({ 
+        name, 
+        sector: document.getElementById('f-sector').value, 
+        email: document.getElementById('f-email').value, 
+        phone: document.getElementById('f-phone').value, 
+        notes: document.getElementById('f-notes').value 
+      }) 
+    });
+    
+    // Firma olusturuldu, ID'yi sihirbaz hafizasina al
+    wizardCreatedCompanyId = res.data.id;
+    document.getElementById('wizard-company-name-label').innerHTML = `<strong style="color:var(--dark)">${name}</strong> profili oluşturuldu. Lütfen CSV envanterini yükleyin.`;
+    
+    // Ana sisteme ekle ve dropdown'i guncelle
+    const data = await apiFetch('/api/companies');
+    state.companies = data.data;
+    renderStoreDropdown();
+    
+    // 2. Adima Gecis
+    document.getElementById('w-pane-1').classList.remove('active');
+    document.getElementById('w-pane-2').classList.add('active');
+    document.getElementById('w-step-1').classList.add('completed');
+    document.getElementById('w-step-1').classList.remove('active');
+    document.getElementById('w-step-2').classList.add('active');
+    
+  } catch (e) { 
+    toast('Kayıt hatası: ' + e.message, 'error'); 
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Kaydet ve Devam Et';
+  }
+}
+
+// CSV Yükleme handler'i icinde butonu aktif etme (handleCsvUpload icine bu satiri ekledik)
+function handleCsvUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  document.getElementById('csvFileName').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const lines = e.target.result.split('\n').filter(l => l.trim());
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    state.csvProducts = lines.slice(1).map(line => {
+      const vals = line.split(','); const obj = {};
+      headers.forEach((h, i) => obj[h] = vals[i]?.trim() || '');
+      return obj;
+    }).filter(p => p.name);
+    
+    document.getElementById('csvPreviewTable').innerHTML = `
+      <div style="font-size:0.75rem;color:var(--slate);margin-bottom:8px">${state.csvProducts.length} ürün bulundu</div>
+      <div class="table-wrap" style="max-height: 200px; overflow-y: auto;"><table><thead><tr><th>Ad</th><th>Kategori</th><th>Fiyat</th><th>Stok</th></tr></thead>
+      <tbody>${state.csvProducts.slice(0,5).map(p=>`<tr><td>${p.name}</td><td>${p.category||'-'}</td><td>${p.price||'-'}</td><td>${p.stock||'-'}</td></tr>`).join('')}</tbody></table></div>`;
+    document.getElementById('csvPreview').style.display = 'block';
+    
+    // Urun bulundugunda yukleme butonunu aktif et
+    if(state.csvProducts.length > 0) {
+        document.getElementById('btn-w-2').disabled = false;
+    }
+  };
+  reader.readAsText(file);
+}
+
+async function processWizardStep2() {
+  if (!wizardCreatedCompanyId) { toast('Firma ID bulunamadı. Lütfen sayfayı yenileyin.', 'error'); return; }
+  
+  const btn = document.getElementById('btn-w-2');
+  btn.disabled = true;
+  btn.textContent = 'Ürünler Yükleniyor...';
+  
+  try {
+    const products = state.csvProducts.map(p => ({ 
+      company_id: wizardCreatedCompanyId, 
+      name: p.name, 
+      category: p.category||'', 
+      price: parseFloat(p.price)||0, 
+      stock: parseInt(p.stock)||0 
+    }));
+    
     await apiFetch('/api/products/bulk', { method: 'POST', body: JSON.stringify(products) });
-    toast(`${products.length} urun yuklendi.`);
-    document.getElementById('csvPreview').style.display = 'none';
+    
     state.csvProducts = [];
-  } catch (e) { toast('Yukleme hatasi: ' + e.message, 'error'); }
+    skipToStep3(); // 3. adima gec
+    
+  } catch (e) { 
+    toast('Yükleme hatası: ' + e.message, 'error'); 
+    btn.disabled = false;
+    btn.textContent = 'Ürünleri Yükle ve Tamamla';
+  }
+}
+
+function skipToStep3() {
+  document.getElementById('w-pane-2').classList.remove('active');
+  document.getElementById('w-pane-3').classList.add('active');
+  document.getElementById('w-step-2').classList.add('completed');
+  document.getElementById('w-step-2').classList.remove('active');
+  document.getElementById('w-step-3').classList.add('completed');
+}
+
+function finishWizard() {
+  // Olusturulan yeni firmayi secip ana kokpite don
+  state.selectedCompanyId = wizardCreatedCompanyId;
+  renderStoreDropdown();
+  showPage('kokpit', document.querySelector('.nav-item'));
+  setTimeout(resetWizard, 500); // Arka planda sihirbazi sifirla
+}
+
+function resetWizard() {
+  wizardCreatedCompanyId = null;
+  state.csvProducts = [];
+  
+  // Formlari temizle
+  ['f-name','f-sector','f-email','f-phone','f-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('csvFile').value = '';
+  document.getElementById('csvFileName').textContent = 'Gerekli Sütunlar: name, category, price, stock (Maks. 10 MB)';
+  document.getElementById('csvPreview').style.display = 'none';
+  document.getElementById('btn-w-2').disabled = true;
+  document.getElementById('btn-w-2').textContent = 'Ürünleri Yükle ve Tamamla';
+  
+  // Pane'leri sifirla
+  document.querySelectorAll('.wizard-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('w-pane-1').classList.add('active');
+  
+  // Step cizgilerini sifirla
+  document.querySelectorAll('.wizard-step').forEach(s => {
+    s.classList.remove('active', 'completed');
+  });
+  document.getElementById('w-step-1').classList.add('active');
 }
 
 // ── GOD MODE ──
