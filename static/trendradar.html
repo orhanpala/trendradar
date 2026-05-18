@@ -256,23 +256,18 @@
 </head>
 <body>
 
-<aside class="sidebar">
-  <div class="sidebar-logo">
-    <div class="logo-mark">trend<span>Radar</span></div>
-    <div class="logo-sub">B2B Pazar Zekasi Platformu</div>
-  </div>
-  <div class="store-selector" onclick="toggleStoreDropdown()">
-    <div>
+<div class="sidebar-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        <span>TrendRadar</span>
+      </div>
+
       <div style="padding: 0 20px 20px 20px; border-bottom: 1px solid #334155; margin-bottom: 20px;">
         <label style="font-size: 0.75rem; color: #94A3B8; margin-bottom: 6px; display: block; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Aktif Mağaza</label>
         <select id="sidebarCompanySelect" class="sidebar-select" onchange="switchCompany(this.value)">
           </select>
       </div>
-      <div class="store-name" id="selectedStoreName">Yukleniyor...</div>
-    </div>
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-    <div class="store-dropdown" id="storeDropdown"></div>
-  </div>
+
+      <a class="nav-item active" ...
   <nav class="nav">
     <div class="nav-item active" onclick="showPage('kokpit', this)">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
@@ -708,19 +703,20 @@ function renderStoreDropdown() {
 }
 
 function switchCompany(newCompanyId) {
-  // Secilen id'yi sisteme islet
+  if (!newCompanyId) return;
+
+  // 1. Yeni firma ID'sini sisteme işlet
   state.selectedCompanyId = parseInt(newCompanyId);
-  toast('Aktif firma değiştirildi.', 'success');
-  
-  // Kullanici o an hangi sayfadaysa (Orn: Kokpit veya Yapay Zeka),
-  // o sayfanin verilerini yeni firmaya gore guncellemek icin sayfayi tekrar cagir.
-  const activePage = document.querySelector('.page[style*="display: block"]');
-  if (activePage) {
-    const pageId = activePage.id.replace('page-', '');
-    const navItem = document.querySelector(`.nav-item[onclick*="${pageId}"]`);
-    if (navItem) {
-      showPage(pageId, navItem);
-    }
+
+  // 2. Kullanıcıya şık bir bildirim göster
+  const selectEl = document.getElementById('sidebarCompanySelect');
+  const companyName = selectEl.options[selectEl.selectedIndex].text;
+  toast('Aktif Firma: ' + companyName + ' olarak değiştirildi.', 'success');
+
+  // 3. Sistemi Korumaya Al: Firma değiştiğinde verilerin taze ve hatasız gelmesi için ana sayfaya (Kokpit) yönlendir.
+  const kokpitBtn = document.querySelector('.nav-item'); // Menüdeki ilk buton (Kokpit)
+  if (kokpitBtn) {
+    showPage('kokpit', kokpitBtn);
   }
 }
 
