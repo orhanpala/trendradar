@@ -8,6 +8,29 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
+  /* SIDEBAR FIRMA SECICI */
+  .sidebar-select {
+    -webkit-appearance: none; -moz-appearance: none; appearance: none;
+    width: 100%;
+    background-color: #1E293B;
+    color: #F8FAFC;
+    border: 1px solid #334155;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+    /* Sag tarafa ok isareti (chevron) ekleme */
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 16px;
+    transition: all 0.2s;
+  }
+  .sidebar-select:hover { border-color: #475569; }
+  .sidebar-select:focus { border-color: var(--orange); box-shadow: 0 0 0 2px rgba(255,122,0,0.2); }
   :root {
     --orange: #FF7A00;
     --orange-light: #FFF3E8;
@@ -240,7 +263,11 @@
   </div>
   <div class="store-selector" onclick="toggleStoreDropdown()">
     <div>
-      <div class="store-label">Magaza</div>
+      <div style="padding: 0 20px 20px 20px; border-bottom: 1px solid #334155; margin-bottom: 20px;">
+        <label style="font-size: 0.75rem; color: #94A3B8; margin-bottom: 6px; display: block; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Aktif Mağaza</label>
+        <select id="sidebarCompanySelect" class="sidebar-select" onchange="switchCompany(this.value)">
+          </select>
+      </div>
       <div class="store-name" id="selectedStoreName">Yukleniyor...</div>
     </div>
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
@@ -649,12 +676,52 @@ document.addEventListener('click', () => {
 });
 
 // ── STORE ──
+// ── FIRMA SECICI (DROPDOWN) MANTIGI ──
 function renderStoreDropdown() {
-  const cur = state.companies.find(c => c.id === state.selectedCompanyId);
-  document.getElementById('selectedStoreName').textContent = cur ? cur.name : 'Firma Yok';
-  document.getElementById('storeDropdown').innerHTML = state.companies.map(c =>
-    `<div class="store-option ${c.id === state.selectedCompanyId ? 'active' : ''}" onclick="selectCompany(${c.id}, event)">${c.name}</div>`
-  ).join('');
+  const selectEl = document.getElementById('sidebarCompanySelect');
+  if (!selectEl) return;
+  
+  selectEl.innerHTML = ''; // İcini temizle
+  
+  if (state.companies.length === 0) {
+    selectEl.innerHTML = '<option value="">Firma Bulunamadı</option>';
+    return;
+  }
+  
+  // Veritabanindaki tum firmalari listeye ekle
+  state.companies.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.name;
+    // Eger secili olan firma bu ise secili (selected) yap
+    if (c.id === state.selectedCompanyId) {
+      opt.selected = true;
+    }
+    selectEl.appendChild(opt);
+  });
+  
+  // Eger hic secili firma yoksa ilkini otomatik sec
+  if (!state.selectedCompanyId && state.companies.length > 0) {
+    state.selectedCompanyId = state.companies[0].id;
+    selectEl.value = state.selectedCompanyId;
+  }
+}
+
+function switchCompany(newCompanyId) {
+  // Secilen id'yi sisteme islet
+  state.selectedCompanyId = parseInt(newCompanyId);
+  toast('Aktif firma değiştirildi.', 'success');
+  
+  // Kullanici o an hangi sayfadaysa (Orn: Kokpit veya Yapay Zeka),
+  // o sayfanin verilerini yeni firmaya gore guncellemek icin sayfayi tekrar cagir.
+  const activePage = document.querySelector('.page[style*="display: block"]');
+  if (activePage) {
+    const pageId = activePage.id.replace('page-', '');
+    const navItem = document.querySelector(`.nav-item[onclick*="${pageId}"]`);
+    if (navItem) {
+      showPage(pageId, navItem);
+    }
+  }
 }
 
 function toggleStoreDropdown() { document.getElementById('storeDropdown').classList.toggle('open'); }
