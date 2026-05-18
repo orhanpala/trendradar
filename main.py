@@ -1,3 +1,5 @@
+import random
+from datetime import datetime, timedelta
 from fastapi import FastAPI, HTTPException, Request
 from pytrends.request import TrendReq
 from fastapi.staticfiles import StaticFiles
@@ -366,36 +368,52 @@ def generate_notifications(user_id: str, company_id: int):
         raise HTTPException(status_code=500, detail=str(e))
     
 # ══════════════════════════════
-# TREND RADAR (GOOGLE TRENDS)
+# TREND RADAR (GOOGLE TRENDS & FALLBACK)
 # ══════════════════════════════
 
 @app.get("/api/trends")
 def get_real_trends(keyword: str):
     try:
-        # Google'in bot algilamasini (429 Too Many Requests) asmak icin standart bir tarayici kimligi (User-Agent) kullaniyoruz.
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         }
         
         pytrends = TrendReq(hl='tr-TR', tz=-180, requests_args={'headers': headers})
-        
         pytrends.build_payload([keyword], cat=0, timeframe='today 1-m', geo='TR')
         data = pytrends.interest_over_time()
         
         if data.empty:
-            # Status 500 firlatmak yerine, 200 basarili donup success: False iletiyoruz.
             return {"success": False, "message": f"'{keyword}' kelimesi icin Turkiye'de yeterli arama hacmi bulunamadi."}
         
         labels = [date.strftime('%d %b') for date in data.index]
         values = data[keyword].tolist()
         
-        return {"success": True, "labels": labels, "data": values}
+        return {"success": True, "labels": labels, "data": values, "is_mock": False}
         
     except Exception as e:
-        error_msg = str(e)
-        # Google tarafindan engellenme durumunu yakalayip turkcelestiriyoruz
-        if "429" in error_msg or "TooManyRequests" in error_msg:
-            return {"success": False, "message": "Google Trends anlik sorgu limitine ulasildi. Lutfen 1-2 dakika bekleyip tekrar deneyin."}
+        # Eger Google (Render IP'si yuzunden) bizi engellerse, sistemi cokertmek yerine
+        # girilen kelimeye ozel, her sorguda ayni cikan gercekci bir simulasyon uretiriz.
         
-        # Diger teknik hatalar (Zaman asimi vb.)
-        return {"success": False, "message": f"Baglanti hatasi: {error_msg}"}
+        # Kelimeyi seed olarak kullan (Boylece 'elma' hep ayni grafigi verir, gercekci durur)
+        random.seed(keyword)
+        
+        labels = []
+        values = []
+        base_val = random.randint(30, 70)
+        
+        for i in range(30, -1, -1):
+            d = datetime.now() - timedelta(days=i)
+            labels.append(d.strftime('%d %b'))
+            
+            # Trend egilimini gercekci dalgalanmalarla hesapla
+            trend_shift = random.randint(-12, 15)
+            base_val = max(5, min(100, base_val + trend_shift))
+            values.append(base_val)
+            
+        return {
+            "success": True, 
+            "labels": labels, 
+            "data": values, 
+            "is_mock": True, # On yuzu bilgilendirmek icin bayrak
+            "message": "Render IP kisitlamasi nedeniyle algoritmik yedekleme (Fallback) devreye girdi."
+        }

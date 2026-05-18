@@ -726,7 +726,7 @@ async function renderTrendChart() {
   document.getElementById('trendPanelTitle').textContent = `"${kw}" araniyor...`;
   
   try {
-    // Gercek API'mize istek atiyoruz
+   // Gercek API'mize istek atiyoruz
     const res = await apiFetch(`/api/trends?keyword=${encodeURIComponent(kw)}`);
     
     if (res.success === false) {
@@ -736,12 +736,18 @@ async function renderTrendChart() {
       return;
     }
 
-    // Google'dan gelen gercek etiketler (tarihler) ve veriler
     const labels = res.labels;
     const data = res.data;
 
-    document.getElementById('trendPanelTitle').textContent = `"${kw}" — Gercek Talep Trendi`;
-    document.getElementById('trendPanelSub').textContent = 'Google Trends: Son 30 gunluk Turkiye arama hacmi (0-100 Endeksi)';
+    document.getElementById('trendPanelTitle').textContent = `"${kw}" — Talep Trendi`;
+    
+    // Eger veri Fallback motorundan geldiyse, kullaniciyi şık bir sekilde bilgilendir
+    if (res.is_mock) {
+      document.getElementById('trendPanelSub').innerHTML = `<span style="color: var(--orange); font-weight: 700;">[Sistem Notu]</span> Bulut sunucu IP kısıtlaması nedeniyle algoritmik simülasyon gösterilmektedir.`;
+      toast('Canli veri baglantisi saglanamadi, yedek algoritmaya gecildi.', 'warning');
+    } else {
+      document.getElementById('trendPanelSub').textContent = 'Google Trends: Son 30 gunluk Turkiye arama hacmi (0-100 Endeksi)';
+    }
 
     const ctx = document.getElementById('trendChart').getContext('2d');
     if (state.trendChartInst) state.trendChartInst.destroy();
