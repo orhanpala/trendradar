@@ -255,42 +255,43 @@
 </style>
 </head>
 <body>
+<div class="app-container">
 
-<div class="sidebar-logo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-        <span>TrendRadar</span>
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <span>TrendRadar</span>
+    </div>
+
+    <div style="padding: 0 20px 20px 20px; border-bottom: 1px solid #334155; margin-bottom: 20px;">
+      <label style="font-size: 0.75rem; color: #94A3B8; margin-bottom: 6px; display: block; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Aktif Mağaza</label>
+      <select id="sidebarCompanySelect" class="sidebar-select" onchange="switchCompany(this.value)">
+      </select>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-item active" onclick="showPage('kokpit', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Ana Kokpit
       </div>
-
-      <div style="padding: 0 20px 20px 20px; border-bottom: 1px solid #334155; margin-bottom: 20px;">
-        <label style="font-size: 0.75rem; color: #94A3B8; margin-bottom: 6px; display: block; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Aktif Mağaza</label>
-        <select id="sidebarCompanySelect" class="sidebar-select" onchange="switchCompany(this.value)">
-          </select>
+      <div class="nav-item" onclick="showPage('otonom', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+        Otonom Aksiyonlar
       </div>
-
-      
-  <nav class="nav">
-    <div class="nav-item active" onclick="showPage('kokpit', this)">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      Ana Kokpit
+      <div class="nav-item" onclick="showPage('trend', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+        Yeni Trend Radari
+      </div>
+      <div class="nav-item" onclick="showPage('firma', this)">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Firma Ayarlari
+      </div>
+    </nav>
+    <div class="god-mode-btn" onclick="showPage('god', null)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      God Mode (Yonetici)
     </div>
-    <div class="nav-item" onclick="showPage('otonom', this)">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
-      Otonom Aksiyonlar
-    </div>
-    <div class="nav-item" onclick="showPage('trend', this)">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-      Yeni Trend Radari
-    </div>
-    <div class="nav-item" onclick="showPage('firma', this)">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-      Firma Ayarlari
-    </div>
-  </nav>
-  <div class="god-mode-btn" onclick="showPage('god', null)">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-    God Mode (Yonetici)
   </div>
-</aside>
 
 <div class="main">
   <header class="topbar">
@@ -518,8 +519,7 @@
 
   </div>
 </div>
-
-<div class="toast" id="toast"></div>
+</div> <div class="toast" id="toast"></div>
 
 <script>
 const API = '';
