@@ -46,6 +46,10 @@ def get_gemini():
 # ── PAGES ──
 @app.get("/")
 def root():
+    return FileResponse("static/index.html")
+
+@app.get("/login")
+def login_page():
     return FileResponse("static/login.html")
 
 @app.get("/dashboard")
