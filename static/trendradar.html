@@ -713,26 +713,78 @@ async function runAiAnalysis() {
 }
 
 // ── TREND ──
-function renderTrendChart() {
-  const kw = document.getElementById('trendInput').value.trim() || 'Genel';
-  document.getElementById('trendPanelTitle').textContent = `"${kw}" — Talep Trend Grafigi`;
-  document.getElementById('trendPanelSub').textContent = 'Son 30 gunluk simulasyon verisi';
-  const labels = [], data = [];
-  const today = new Date();
-  let val = 50 + Math.random() * 30;
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date(today); d.setDate(d.getDate() - i);
-    labels.push(d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }));
-    val = Math.max(5, val + (Math.random() - 0.45) * 6);
-    data.push(Math.round(val * 10) / 10);
+async function renderTrendChart() {
+  const kw = document.getElementById('trendInput').value.trim();
+  if (!kw) { toast('Lutfen bir anahtar kelime girin.', 'error'); return; }
+
+  const btn = document.querySelector('.trend-btn');
+  const originalText = btn.textContent;
+  
+  // Yuklenme durumu
+  btn.disabled = true;
+  btn.textContent = 'Veri Cekiliyor...';
+  document.getElementById('trendPanelTitle').textContent = `"${kw}" araniyor...`;
+  
+  try {
+    // Gercek API'mize istek atiyoruz
+    const res = await apiFetch(`/api/trends?keyword=${encodeURIComponent(kw)}`);
+    
+    if (res.success === false) {
+      toast(res.message, 'error');
+      document.getElementById('trendPanelTitle').textContent = 'Analiz Basarisiz';
+      document.getElementById('trendPanelSub').textContent = res.message;
+      return;
+    }
+
+    // Google'dan gelen gercek etiketler (tarihler) ve veriler
+    const labels = res.labels;
+    const data = res.data;
+
+    document.getElementById('trendPanelTitle').textContent = `"${kw}" — Gercek Talep Trendi`;
+    document.getElementById('trendPanelSub').textContent = 'Google Trends: Son 30 gunluk Turkiye arama hacmi (0-100 Endeksi)';
+
+    const ctx = document.getElementById('trendChart').getContext('2d');
+    if (state.trendChartInst) state.trendChartInst.destroy();
+    
+    // Grafigi cizdir
+    state.trendChartInst = new Chart(ctx, {
+      type: 'line',
+      data: { 
+        labels, 
+        datasets: [{ 
+          data, 
+          borderColor: '#FF7A00', 
+          borderWidth: 2.5, 
+          pointRadius: 1, 
+          pointHoverRadius: 5, 
+          tension: 0.3, 
+          fill: true, 
+          backgroundColor: (c) => { 
+            const g = c.chart.ctx.createLinearGradient(0,0,0,220); 
+            g.addColorStop(0,'rgba(255,122,0,0.18)'); 
+            g.addColorStop(1,'rgba(255,122,0,0)'); 
+            return g; 
+          } 
+        }] 
+      },
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1E293B', mode: 'index', intersect: false } }, 
+        scales: { 
+          x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', size: 10 }, color: '#94A3B8', maxTicksLimit: 8 } }, 
+          y: { grid: { color: '#F1F5F9' }, min: 0, max: 100, ticks: { font: { family: 'DM Mono', size: 10 }, color: '#94A3B8' } } 
+        } 
+      }
+    });
+
+  } catch (e) {
+    toast('Trend verisi alinirken hata olustu.', 'error');
+    document.getElementById('trendPanelTitle').textContent = 'Sistem Hatasi';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalText;
   }
-  const ctx = document.getElementById('trendChart').getContext('2d');
-  if (state.trendChartInst) state.trendChartInst.destroy();
-  state.trendChartInst = new Chart(ctx, {
-    type: 'line',
-    data: { labels, datasets: [{ data, borderColor: '#FF7A00', borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 5, tension: 0.4, fill: true, backgroundColor: (c) => { const g = c.chart.ctx.createLinearGradient(0,0,0,220); g.addColorStop(0,'rgba(255,122,0,0.18)'); g.addColorStop(1,'rgba(255,122,0,0)'); return g; } }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1E293B', mode: 'index', intersect: false } }, scales: { x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', size: 10 }, color: '#94A3B8', maxTicksLimit: 8 } }, y: { grid: { color: '#F1F5F9' }, ticks: { font: { family: 'DM Mono', size: 10 }, color: '#94A3B8' } } } }
-  });
 }
 
 // ── FIRMA ──
