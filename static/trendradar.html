@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrendRadar | Yonetim Paneli</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --orange: #FF7A00;
+    --orange-light: #FFF3E8;
+    --dark: #1E293B;
+    --dark-sidebar: #0F172A;
+    --dark-nav: #1A2537;
+    --slate: #475569;
+    --slate-light: #94A3B8;
+    --border: #E2E8F0;
+    --bg: #F1F5F9;
+    --white: #FFFFFF;
+    --red: #EF4444;
+    --green: #10B981;
+    --yellow: #F59E0B;
+    --card-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+    --sidebar-w: 240px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--dark); display: flex; height: 100vh; overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar { width: var(--sidebar-w); background: var(--dark-sidebar); display: flex; flex-direction: column; flex-shrink: 0; height: 100vh; }
+  .sidebar-logo { padding: 28px 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+  .logo-mark { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.03em; color: var(--white); }
+  .logo-mark span { color: var(--orange); }
+  .logo-sub { font-size: 0.65rem; color: var(--slate-light); text-transform: uppercase; letter-spacing: 0.12em; margin-top: 4px; }
+  .store-selector { margin: 16px 14px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: background 0.2s; position: relative; }
+  .store-selector:hover { background: rgba(255,255,255,0.1); }
+  .store-label { font-size: 0.72rem; color: var(--slate-light); margin-bottom: 2px; }
+  .store-name { font-size: 0.88rem; font-weight: 600; color: var(--white); }
+  .store-dropdown { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: #1A2537; border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; overflow: hidden; z-index: 100; display: none; }
+  .store-dropdown.open { display: block; }
+  .store-option { padding: 10px 14px; font-size: 0.84rem; color: var(--slate-light); cursor: pointer; transition: background 0.15s; }
+  .store-option:hover { background: rgba(255,122,0,0.15); color: var(--orange); }
+  .store-option.active { color: var(--orange); font-weight: 700; }
+  .nav { flex: 1; padding: 8px 10px; overflow-y: auto; }
+  .nav-item { display: flex; align-items: center; gap: 11px; padding: 10px 14px; border-radius: 9px; cursor: pointer; color: var(--slate-light); font-size: 0.875rem; font-weight: 500; transition: all 0.15s; margin-bottom: 2px; }
+  .nav-item:hover { background: rgba(255,255,255,0.07); color: var(--white); }
+  .nav-item.active { background: rgba(255,122,0,0.18); color: var(--orange); font-weight: 700; }
+  .nav-icon { width: 18px; height: 18px; flex-shrink: 0; }
+  .god-mode-btn { margin: 12px 14px 20px; background: var(--dark-nav); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 11px 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--slate-light); font-size: 0.82rem; font-weight: 600; transition: all 0.2s; }
+  .god-mode-btn:hover { background: rgba(255,122,0,0.15); color: var(--orange); border-color: rgba(255,122,0,0.3); }
+
+  /* MAIN */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+  .topbar { background: var(--white); border-bottom: 1px solid var(--border); padding: 0 32px; height: 62px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .topbar-title { font-size: 1.15rem; font-weight: 700; color: var(--dark); letter-spacing: -0.02em; }
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+  .notif-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
+  .notif-badge { position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: var(--red); border-radius: 50%; border: 2px solid var(--white); }
+  .user-chip { display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 6px; border-radius: 999px; background: var(--bg); border: 1px solid var(--border); cursor: pointer; }
+  .avatar { width: 28px; height: 28px; background: var(--orange); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 800; color: var(--white); }
+  .user-name { font-size: 0.8rem; font-weight: 700; color: var(--dark); }
+  .user-role { font-size: 0.68rem; color: var(--slate-light); }
+  .content { flex: 1; overflow-y: auto; padding: 28px 32px; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* METRICS */
+  .metrics-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+  .metric-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px; display: flex; align-items: flex-start; gap: 16px; box-shadow: var(--card-shadow); transition: transform 0.2s; animation: fadeUp 0.4s ease both; }
+  .metric-card:hover { transform: translateY(-2px); }
+  .metric-card:nth-child(1){animation-delay:0.05s} .metric-card:nth-child(2){animation-delay:0.1s} .metric-card:nth-child(3){animation-delay:0.15s}
+  .metric-icon-wrap { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .metric-icon-wrap.blue{background:#EFF6FF} .metric-icon-wrap.green{background:#F0FDF4} .metric-icon-wrap.orange{background:var(--orange-light)}
+  .metric-icon-wrap svg { width: 22px; height: 22px; }
+  .metric-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--slate-light); font-weight: 600; margin-bottom: 6px; }
+  .metric-value { font-size: 1.85rem; font-weight: 800; color: var(--dark); letter-spacing: -0.03em; line-height: 1; margin-bottom: 8px; }
+  .metric-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 600; padding: 3px 8px; border-radius: 999px; }
+  .badge-green{background:#F0FDF4;color:#059669} .badge-gray{background:#F1F5F9;color:var(--slate)} .badge-red{background:#FEF2F2;color:var(--red)} .badge-orange{background:var(--orange-light);color:var(--orange)}
+
+  /* BOTTOM GRID */
+  .bottom-grid { display: grid; grid-template-columns: 1fr 360px; gap: 16px; }
+  .panel { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; box-shadow: var(--card-shadow); animation: fadeUp 0.4s ease both; animation-delay: 0.2s; }
+  .panel-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .panel-header svg { width: 17px; height: 17px; color: var(--slate); }
+  .panel-title { font-size: 0.9rem; font-weight: 700; color: var(--dark); }
+  .panel-sub { font-size: 0.75rem; color: var(--slate-light); margin-bottom: 18px; }
+  .chart-area { height: 220px; position: relative; }
+  .tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 18px; }
+  .tab { font-size: 0.8rem; font-weight: 600; padding: 8px 16px; cursor: pointer; color: var(--slate-light); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: color 0.15s, border-color 0.15s; }
+  .tab.active { color: var(--orange); border-bottom-color: var(--orange); }
+
+  /* AI */
+  .ai-controls { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; }
+  .ai-select-wrap { display: flex; flex-direction: column; gap: 6px; }
+  .form-label { font-size: 0.72rem; font-weight: 700; color: var(--dark); text-transform: uppercase; letter-spacing: 0.07em; }
+  .form-select { padding: 9px 14px; border: 1px solid var(--border); border-radius: 9px; font-family: inherit; font-size: 0.875rem; color: var(--dark); background: var(--white); outline: none; cursor: pointer; min-width: 220px; }
+  .form-select:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255,122,0,0.1); }
+  .ai-result-box { background: var(--white); border: 1px solid var(--border); border-left: 4px solid var(--orange); border-radius: 12px; padding: 20px 22px; font-size: 0.84rem; color: var(--dark); line-height: 1.75; white-space: pre-wrap; box-shadow: var(--card-shadow); min-height: 120px; }
+  .ai-result-box.loading { color: var(--slate-light); font-style: italic; }
+
+  /* TREND */
+  .trend-search { display: flex; gap: 10px; margin-bottom: 22px; }
+  .trend-input { flex: 1; padding: 10px 16px; border: 1px solid var(--border); border-radius: 9px; font-family: inherit; font-size: 0.875rem; color: var(--dark); background: var(--white); outline: none; }
+  .trend-input:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255,122,0,0.1); }
+  .trend-btn { padding: 10px 22px; background: var(--orange); color: var(--white); border: none; border-radius: 9px; font-family: inherit; font-size: 0.875rem; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+  .trend-btn:hover { background: #E06A00; }
+
+  /* FIRMA */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-input, .form-textarea { padding: 10px 14px; border: 1px solid var(--border); border-radius: 9px; font-family: inherit; font-size: 0.875rem; color: var(--dark); background: var(--white); outline: none; transition: border-color 0.15s; }
+  .form-input:focus, .form-textarea:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255,122,0,0.1); }
+  .form-textarea { resize: vertical; min-height: 80px; }
+  .form-submit { margin-top: 8px; padding: 11px 28px; background: var(--orange); color: var(--white); border: none; border-radius: 9px; font-family: inherit; font-size: 0.875rem; font-weight: 700; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; gap: 7px; }
+  .form-submit:hover { background: #E06A00; }
+  .upload-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 32px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; margin-top: 16px; }
+  .upload-zone:hover { border-color: var(--orange); background: var(--orange-light); }
+  .upload-zone-icon { width: 36px; height: 36px; color: var(--slate-light); margin: 0 auto 10px; display: block; }
+  .upload-zone-text { font-size: 0.85rem; font-weight: 600; color: var(--slate); }
+  .upload-zone-sub { font-size: 0.72rem; color: var(--slate-light); margin-top: 4px; }
+
+  /* GOD MODE */
+  .god-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .god-metric { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 18px; box-shadow: var(--card-shadow); }
+  .god-metric-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--slate-light); font-weight: 600; margin-bottom: 8px; }
+  .god-metric-value { font-size: 2rem; font-weight: 800; color: var(--dark); letter-spacing: -0.03em; font-family: 'DM Mono', monospace; }
+  .god-metric-value span { font-size: 0.875rem; color: var(--slate-light); font-weight: 500; }
+  .table-wrap { background: var(--white); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: var(--card-shadow); margin-bottom: 24px; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th { background: var(--dark); color: #F1F5F9; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; padding: 11px 16px; text-align: left; font-weight: 700; }
+  tbody td { padding: 11px 16px; font-size: 0.82rem; color: var(--dark); border-bottom: 1px solid var(--border); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: #FFF7F0; }
+
+  /* UTILS */
+  .section-title { font-size: 1rem; font-weight: 800; color: var(--dark); margin-bottom: 16px; letter-spacing: -0.01em; }
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--slate-light); font-size: 0.85rem; }
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--dark); color: var(--white); padding: 12px 20px; border-radius: 10px; font-size: 0.82rem; font-weight: 600; z-index: 9999; transform: translateY(80px); opacity: 0; transition: all 0.3s ease; pointer-events: none; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-left: 4px solid var(--green); }
+  .toast.error { border-left: 4px solid var(--red); }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+  .content::-webkit-scrollbar{width:5px} .content::-webkit-scrollbar-track{background:transparent} .content::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">trend<span>Radar</span></div>
+    <div class="logo-sub">B2B Pazar Zekasi Platformu</div>
+  </div>
+
+  <div class="store-selector" onclick="toggleStoreDropdown()">
+    <div>
+      <div class="store-label">Magaza</div>
+      <div class="store-name" id="selectedStoreName">Yukleniyor...</div>
+    </div>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+    <div class="store-dropdown" id="storeDropdown"></div>
+  </div>
+
+  <nav class="nav">
+    <div class="nav-item active" onclick="showPage('kokpit', this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Ana Kokpit
+    </div>
+    <div class="nav-item" onclick="showPage('otonom', this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      Otonom Aksiyonlar
+    </div>
+    <div class="nav-item" onclick="showPage('trend', this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+      Yeni Trend Radari
+    </div>
+    <div class="nav-item" onclick="showPage('firma', this)">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      Firma Ayarlari
+    </div>
+  </nav>
+
+  <div class="god-mode-btn" onclick="showPage('god', null)">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    God Mode (Yonetici)
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-title" id="pageTitle">Ana Kokpit</div>
+    <div class="topbar-right">
+      <div class="notif-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <div class="notif-badge"></div>
+      </div>
+      <div class="user-chip">
+        <div class="avatar">TR</div>
+        <div>
+          <div class="user-name">TrendRadar</div>
+          <div class="user-role">Sistem Yoneticisi</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ANA KOKPIT -->
+    <div class="page active" id="page-kokpit">
+      <div class="metrics-row">
+        <div class="metric-card">
+          <div class="metric-icon-wrap blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/></svg>
+          </div>
+          <div>
+            <div class="metric-label">Aktif Urun Envanteri</div>
+            <div class="metric-value" id="m-products">—</div>
+            <span class="metric-badge badge-green" id="m-products-sub">Yukleniyor...</span>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon-wrap green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+          </div>
+          <div>
+            <div class="metric-label">Toplam Stok Birimi</div>
+            <div class="metric-value" id="m-stock">—</div>
+            <span class="metric-badge badge-gray">Tum kategoriler</span>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-icon-wrap orange">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#FF7A00" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <div>
+            <div class="metric-label">Kritik Stok Alti</div>
+            <div class="metric-value" id="m-lowstock">—</div>
+            <span class="metric-badge badge-red" id="m-lowstock-sub">Yukleniyor...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-grid">
+        <div class="panel">
+          <div class="tabs">
+            <div class="tab active" onclick="switchTab(this,'stock')">Stok Dagilimi</div>
+            <div class="tab" onclick="switchTab(this,'price')">Fiyat Analizi</div>
+          </div>
+          <div class="chart-area"><canvas id="mainChart"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            <div class="panel-title">Urun Listesi</div>
+          </div>
+          <div style="margin-bottom:12px"></div>
+          <div id="productList" style="max-height:260px;overflow-y:auto;">
+            <div class="empty-state">Yukleniyor...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OTONOM AKSIYONLAR -->
+    <div class="page" id="page-otonom">
+      <div class="section-title">Otonom Aksiyon Tavsiyeleri</div>
+      <p style="font-size:0.82rem;color:var(--slate);margin-bottom:20px;">Gemini yapay zeka motoru, secili firmanin urun verisini analiz ederek aksiyon tavsiyeleri uretir.</p>
+      <div class="ai-controls">
+        <div class="ai-select-wrap">
+          <label class="form-label">Analiz Turu</label>
+          <select class="form-select" id="analysisType">
+            <option value="fiyatlandirma">Fiyatlandirma Optimizasyonu</option>
+            <option value="stok">Stok Yonetimi Tavsiyeleri</option>
+            <option value="genel">Genel Strateji Ozeti</option>
+          </select>
+        </div>
+        <button class="form-submit" onclick="runAiAnalysis()" id="aiBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Analizi Calistir
+        </button>
+      </div>
+      <div class="ai-result-box loading" id="aiResult">
+        Analiz baslatilmadi. Yukaridan bir tur secip "Analizi Calistir" butonuna basin.
+      </div>
+    </div>
+
+    <!-- TREND RADARI -->
+    <div class="page" id="page-trend">
+      <div class="section-title">Yeni Trend Radari</div>
+      <div class="trend-search">
+        <input class="trend-input" id="trendInput" type="text" placeholder="Anahtar kelime: elektronik, gida, tekstil..." onkeydown="if(event.key==='Enter')renderTrendChart()">
+        <button class="trend-btn" onclick="renderTrendChart()">Analizi Baslat</button>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+          <div class="panel-title" id="trendPanelTitle">Talep Trend Grafigi</div>
+        </div>
+        <div class="panel-sub" id="trendPanelSub">Bir anahtar kelime girerek analizi baslatiniz.</div>
+        <div class="chart-area"><canvas id="trendChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- FIRMA AYARLARI -->
+    <div class="page" id="page-firma">
+      <div class="section-title">Firma Ayarlari</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div class="panel">
+          <div class="panel-title" style="margin-bottom:16px">Yeni Firma Kaydi</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Firma Adi</label>
+              <input class="form-input" id="f-name" type="text" placeholder="Acme Ticaret A.S.">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Sektor</label>
+              <input class="form-input" id="f-sector" type="text" placeholder="Elektronik Perakende">
+            </div>
+            <div class="form-group">
+              <label class="form-label">E-posta</label>
+              <input class="form-input" id="f-email" type="email" placeholder="info@firma.com">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Telefon</label>
+              <input class="form-input" id="f-phone" type="text" placeholder="+90 212 000 0000">
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Notlar</label>
+              <textarea class="form-textarea" id="f-notes" placeholder="Opsiyonel aciklama..."></textarea>
+            </div>
+          </div>
+          <button class="form-submit" onclick="createCompany()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Firmаyi Kaydet
+          </button>
+        </div>
+        <div class="panel">
+          <div class="panel-title" style="margin-bottom:4px">CSV ile Toplu Urun Yukleme</div>
+          <div class="panel-sub">Beklenen sutunlar: name, category, price, stock</div>
+          <div class="upload-zone" onclick="document.getElementById('csvFile').click()">
+            <svg class="upload-zone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <div class="upload-zone-text">CSV dosyasini surukleyin veya tiklayin</div>
+            <div class="upload-zone-sub" id="csvFileName">.csv formati, maksimum 10 MB</div>
+            <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="handleCsvUpload(event)">
+          </div>
+          <div id="csvPreview" style="margin-top:14px;display:none">
+            <div id="csvPreviewTable"></div>
+            <button class="form-submit" style="margin-top:12px" onclick="uploadCsvProducts()">Urunleri Yukle</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GOD MODE -->
+    <div class="page" id="page-god">
+      <div class="section-title">God Mode — Admin Paneli</div>
+      <div class="god-metrics">
+        <div class="god-metric"><div class="god-metric-label">Toplam Firma</div><div class="god-metric-value" id="g-companies">— <span>firma</span></div></div>
+        <div class="god-metric"><div class="god-metric-label">Toplam Urun</div><div class="god-metric-value" id="g-products">— <span>urun</span></div></div>
+        <div class="god-metric"><div class="god-metric-label">Toplam Stok</div><div class="god-metric-value" id="g-stock">— <span>adet</span></div></div>
+        <div class="god-metric"><div class="god-metric-label">Benzersiz Kategori</div><div class="god-metric-value" id="g-cats">— <span>kat.</span></div></div>
+      </div>
+      <div style="font-size:0.78rem;font-weight:700;color:var(--dark);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">Tum Firmalar</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Firma Adi</th><th>Sektor</th><th>E-posta</th><th>Kayit Tarihi</th></tr></thead>
+          <tbody id="g-companies-table"><tr><td colspan="5" style="text-align:center;color:var(--slate-light)">Yukleniyor...</td></tr></tbody>
+        </table>
+      </div>
+      <div style="font-size:0.78rem;font-weight:700;color:var(--dark);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">Kritik Stok Alti Urunler</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Urun</th><th>Kategori</th><th>Fiyat</th><th>Stok</th><th>Durum</th></tr></thead>
+          <tbody id="g-lowstock-table"><tr><td colspan="5" style="text-align:center;color:var(--slate-light)">Yukleniyor...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';
+
+let state = {
+  companies: [],
+  selectedCompanyId: null,
+  products: [],
+  mainChartInst: null,
+  trendChartInst: null,
+  csvProducts: [],
+};
+
+// TOAST
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast ${type} show`;
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// API
+async function apiFetch(path, opts = {}) {
+  const res = await fetch(API + path, { headers: { 'Content-Type': 'application/json' }, ...opts });
+  if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.detail || res.statusText); }
+  return res.json();
+}
+
+// INIT
+async function init() {
+  try {
+    const data = await apiFetch('/api/companies');
+    state.companies = data.data;
+    if (state.companies.length > 0) state.selectedCompanyId = state.companies[0].id;
+    renderStoreDropdown();
+    await loadKokpit();
+  } catch (e) {
+    toast('Sunucuya baglanilamadi: ' + e.message, 'error');
+  }
+}
+
+// STORE DROPDOWN
+function renderStoreDropdown() {
+  const cur = state.companies.find(c => c.id === state.selectedCompanyId);
+  document.getElementById('selectedStoreName').textContent = cur ? cur.name : 'Firma Yok';
+  document.getElementById('storeDropdown').innerHTML = state.companies.map(c =>
+    `<div class="store-option ${c.id === state.selectedCompanyId ? 'active' : ''}" onclick="selectCompany(${c.id}, event)">${c.name}</div>`
+  ).join('');
+}
+
+function toggleStoreDropdown() {
+  document.getElementById('storeDropdown').classList.toggle('open');
+}
+
+async function selectCompany(id, e) {
+  e.stopPropagation();
+  state.selectedCompanyId = id;
+  document.getElementById('storeDropdown').classList.remove('open');
+  renderStoreDropdown();
+  const active = document.querySelector('.page.active').id.replace('page-', '');
+  if (active === 'kokpit') await loadKokpit();
+  if (active === 'otonom') { document.getElementById('aiResult').className = 'ai-result-box loading'; document.getElementById('aiResult').textContent = 'Yeni firma secildi. Analizi yeniden calistirin.'; }
+}
+
+document.addEventListener('click', () => document.getElementById('storeDropdown').classList.remove('open'));
+
+// NAV
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+  const titles = { kokpit: 'Ana Kokpit', otonom: 'Otonom Aksiyon Tavsiyeleri', trend: 'Yeni Trend Radari', firma: 'Firma Ayarlari', god: 'God Mode — Admin Paneli' };
+  document.getElementById('pageTitle').textContent = titles[name] || '';
+  if (name === 'kokpit') loadKokpit();
+  if (name === 'god') loadGodMode();
+}
+
+// KOKPIT
+async function loadKokpit() {
+  if (!state.selectedCompanyId) return;
+  try {
+    const data = await apiFetch(`/api/companies/${state.selectedCompanyId}/products`);
+    state.products = data.data;
+    const totalStock = state.products.reduce((s, p) => s + (p.stock || 0), 0);
+    const low = state.products.filter(p => p.stock < 10);
+    document.getElementById('m-products').textContent = state.products.length.toLocaleString('tr-TR');
+    document.getElementById('m-products-sub').textContent = `${state.products.length} aktif urun kayitli`;
+    document.getElementById('m-stock').textContent = totalStock.toLocaleString('tr-TR');
+    document.getElementById('m-lowstock').textContent = low.length;
+    document.getElementById('m-lowstock-sub').textContent = low.length > 0 ? `${low.length} urun dikkat gerektiriyor` : 'Stok seviyeleri normal';
+    renderMainChart();
+    renderProductList();
+  } catch (e) { toast('Kokpit yuklenemedi: ' + e.message, 'error'); }
+}
+
+function switchTab(el, type) {
+  document.querySelectorAll('#page-kokpit .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  type === 'price' ? renderPriceChart() : renderMainChart();
+}
+
+function renderMainChart() {
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  if (state.mainChartInst) state.mainChartInst.destroy();
+  const catMap = {};
+  state.products.forEach(p => { const c = p.category || 'Diger'; catMap[c] = (catMap[c] || 0) + (p.stock || 0); });
+  const colors = ['#FF7A00','#1E293B','#FF9A40','#475569','#FFB87A','#64748B','#FFCF99'];
+  const labels = Object.keys(catMap);
+  state.mainChartInst = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'Stok', data: Object.values(catMap), backgroundColor: colors.slice(0, labels.length), borderRadius: 6, borderSkipped: false }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1E293B' } }, scales: { x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', size: 11 }, color: '#94A3B8' } }, y: { grid: { color: '#F1F5F9' }, ticks: { font: { family: 'DM Mono', size: 10 }, color: '#94A3B8' } } } }
+  });
+}
+
+function renderPriceChart() {
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  if (state.mainChartInst) state.mainChartInst.destroy();
+  const sorted = [...state.products].sort((a, b) => b.price - a.price).slice(0, 8);
+  state.mainChartInst = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: sorted.map(p => p.name.length > 14 ? p.name.substring(0,14)+'...' : p.name), datasets: [{ data: sorted.map(p => p.price), backgroundColor: '#FF7A00', borderRadius: 6, borderSkipped: false }] },
+    options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1E293B', callbacks: { label: c => ` ${c.raw.toLocaleString('tr-TR')} TL` } } }, scales: { x: { grid: { color: '#F1F5F9' }, ticks: { font: { family: 'DM Mono', size: 10 }, color: '#94A3B8' } }, y: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', size: 11 }, color: '#94A3B8' } } } }
+  });
+}
+
+function renderProductList() {
+  const el = document.getElementById('productList');
+  if (!state.products.length) { el.innerHTML = '<div class="empty-state">Bu firmaya ait urun bulunamadi.</div>'; return; }
+  el.innerHTML = state.products.map(p => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div><div style="font-size:0.82rem;font-weight:600">${p.name}</div><div style="font-size:0.72rem;color:var(--slate-light)">${p.category||'-'}</div></div>
+      <div style="text-align:right">
+        <div style="font-size:0.82rem;font-weight:700;font-family:'DM Mono',monospace">${Number(p.price).toLocaleString('tr-TR')} TL</div>
+        <span class="metric-badge ${p.stock<10?'badge-red':p.stock<50?'badge-orange':'badge-green'}">${p.stock} adet</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// AI
+async function runAiAnalysis() {
+  if (!state.selectedCompanyId) { toast('Once bir firma secin.', 'error'); return; }
+  const type = document.getElementById('analysisType').value;
+  const btn = document.getElementById('aiBtn');
+  const resultEl = document.getElementById('aiResult');
+  btn.disabled = true;
+  btn.textContent = 'Analiz yurutuluyor...';
+  resultEl.className = 'ai-result-box loading';
+  resultEl.textContent = 'Gemini yapay zeka motoru calistiriliyor. Bu islem 10-20 saniye surebilir...';
+  try {
+    const data = await apiFetch('/api/ai/analyze', { method: 'POST', body: JSON.stringify({ company_id: state.selectedCompanyId, analysis_type: type }) });
+    resultEl.className = 'ai-result-box';
+    resultEl.textContent = data.result;
+    toast('Analiz tamamlandi.');
+  } catch (e) {
+    resultEl.textContent = 'Hata: ' + e.message;
+    toast('Analiz basarisiz: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg> Analizi Calistir';
+  }
+}
+
+// TREND
+function renderTrendChart() {
+  const kw = document.getElementById('trendInput').value.trim() || 'Genel';
+  document.getElementById('trendPanelTitle').textContent = `"${kw}" — Talep Trend Grafigi`;
+  document.getElementById('trendPanelSub').textContent = 'Son 30 gunluk simulasyon verisi';
+  const labels = [], data = [];
+  const today = new Date();
+  let val = 50 + Math.random() * 30;
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    labels.push(d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }));
+    val = Math.max(5, val + (Math.random() - 0.45) * 6);
+    data.push(Math.round(val * 10) / 10);
+  }
+  const ctx = document.getElementById('trendChart').getContext('2d');
+  if (state.trendChartInst) state.trendChartInst.destroy();
+  state.trendChartInst = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{ data, borderColor: '#FF7A00', borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 5, tension: 0.4, fill: true, backgroundColor: (c) => { const g = c.chart.ctx.createLinearGradient(0,0,0,220); g.addColorStop(0,'rgba(255,122,0,0.18)'); g.addColorStop(1,'rgba(255,122,0,0)'); return g; } }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1E293B', mode: 'index', intersect: false } }, scales: { x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', size: 10 }, color: '#94A3B8', maxTicksLimit: 8 } }, y: { grid: { color: '#F1F5F9' }, ticks: { font: { family: 'DM Mono', size: 10 }, color: '#94A3B8' } } } }
+  });
+}
+
+// FIRMA
+async function createCompany() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { toast('Firma adi zorunludur.', 'error'); return; }
+  try {
+    await apiFetch('/api/companies', { method: 'POST', body: JSON.stringify({ name, sector: document.getElementById('f-sector').value, email: document.getElementById('f-email').value, phone: document.getElementById('f-phone').value, notes: document.getElementById('f-notes').value }) });
+    toast(`"${name}" basariyla eklendi.`);
+    ['f-name','f-sector','f-email','f-phone','f-notes'].forEach(id => document.getElementById(id).value = '');
+    const data = await apiFetch('/api/companies');
+    state.companies = data.data;
+    renderStoreDropdown();
+  } catch (e) { toast('Kayit hatasi: ' + e.message, 'error'); }
+}
+
+function handleCsvUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  document.getElementById('csvFileName').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const lines = e.target.result.split('\n').filter(l => l.trim());
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    state.csvProducts = lines.slice(1).map(line => {
+      const vals = line.split(',');
+      const obj = {};
+      headers.forEach((h, i) => obj[h] = vals[i]?.trim() || '');
+      return obj;
+    }).filter(p => p.name);
+    document.getElementById('csvPreviewTable').innerHTML = `
+      <div style="font-size:0.75rem;color:var(--slate);margin-bottom:8px">${state.csvProducts.length} urun bulundu</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Ad</th><th>Kategori</th><th>Fiyat</th><th>Stok</th></tr></thead>
+        <tbody>${state.csvProducts.slice(0,5).map(p=>`<tr><td>${p.name}</td><td>${p.category||'-'}</td><td>${p.price||'-'}</td><td>${p.stock||'-'}</td></tr>`).join('')}</tbody>
+      </table></div>`;
+    document.getElementById('csvPreview').style.display = 'block';
+  };
+  reader.readAsText(file);
+}
+
+async function uploadCsvProducts() {
+  if (!state.selectedCompanyId) { toast('Once bir firma secin.', 'error'); return; }
+  if (!state.csvProducts.length) { toast('Yuklenecek urun yok.', 'error'); return; }
+  try {
+    const products = state.csvProducts.map(p => ({ company_id: state.selectedCompanyId, name: p.name, category: p.category||'', price: parseFloat(p.price)||0, stock: parseInt(p.stock)||0 }));
+    await apiFetch('/api/products/bulk', { method: 'POST', body: JSON.stringify(products) });
+    toast(`${products.length} urun yuklendi.`);
+    document.getElementById('csvPreview').style.display = 'none';
+    state.csvProducts = [];
+  } catch (e) { toast('Yukleme hatasi: ' + e.message, 'error'); }
+}
+
+// GOD MODE
+async function loadGodMode() {
+  try {
+    const [stats, companies, lowStock] = await Promise.all([
+      apiFetch('/api/stats'),
+      apiFetch('/api/companies'),
+      apiFetch('/api/products/low-stock?threshold=10'),
+    ]);
+    document.getElementById('g-companies').innerHTML = `${stats.total_companies} <span>firma</span>`;
+    document.getElementById('g-products').innerHTML = `${stats.total_products} <span>urun</span>`;
+    document.getElementById('g-stock').innerHTML = `${(stats.total_stock||0).toLocaleString('tr-TR')} <span>adet</span>`;
+    document.getElementById('g-cats').innerHTML = `${stats.unique_categories} <span>kat.</span>`;
+    document.getElementById('g-companies-table').innerHTML = companies.data.map(c =>
+      `<tr><td style="font-family:'DM Mono',monospace">${c.id}</td><td style="font-weight:600">${c.name}</td><td>${c.sector||'-'}</td><td>${c.email||'-'}</td><td style="font-family:'DM Mono',monospace;font-size:0.75rem">${c.created_at?c.created_at.substring(0,10):'-'}</td></tr>`
+    ).join('');
+    document.getElementById('g-lowstock-table').innerHTML = lowStock.data.length
+      ? lowStock.data.map(p => `<tr><td style="font-weight:600">${p.name}</td><td>${p.category||'-'}</td><td style="font-family:'DM Mono',monospace">${Number(p.price).toLocaleString('tr-TR')} TL</td><td style="font-family:'DM Mono',monospace;font-weight:700;color:var(--red)">${p.stock}</td><td><span class="metric-badge badge-red">Kritik</span></td></tr>`).join('')
+      : `<tr><td colspan="5" style="text-align:center;color:var(--slate-light)">Kritik stok alti urun bulunmuyor.</td></tr>`;
+  } catch(e) { toast('God Mode yuklenemedi: ' + e.message, 'error'); }
+}
+
+init();
+</script>
+</body>
+</html>
