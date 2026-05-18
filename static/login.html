@@ -320,9 +320,9 @@ async function register() {
     });
     const data = await res.json();
     if (!res.ok) { showError(data.detail || 'Kayit basarisiz.'); return; }
-    showError('Kayit basarili! Giris yapabilirsiniz.');
-    document.getElementById('errorBox').style.background = '#F0FDF4';
-    document.getElementById('errorBox').style.color = '#059669';
+    showError('Kayıt alındı! Lütfen e-posta adresinize gelen onay linkine tıklayın.');
+    document.getElementById('errorBox').style.background = '#FFFBEB'; 
+    document.getElementById('errorBox').style.color = '#B45309';
     document.getElementById('errorBox').style.borderLeftColor = '#10B981';
     switchTab('login');
   } catch(e) {
