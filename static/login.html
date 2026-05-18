@@ -195,14 +195,16 @@
   <div class="auth-tab" onclick="switchTab('register')">Kayit Ol</div>
 </div>
 
-    <div class="form-group">
-      <label class="form-label">E-posta Adresi</label>
+    <div id="loginFields">
+<div class="form-group">
+  <label class="form-label">E-posta Adresi</label>
       <input class="form-input" id="email" type="email" placeholder="ornek@firma.com" onkeydown="if(event.key==='Enter')login()">
     </div>
 
     <div class="form-group">
       <label class="form-label">Sifre</label>
       <input class="form-input" id="password" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()">
+    </div>
     </div>
     <div id="registerForm">
   <div class="form-group">
@@ -288,14 +290,16 @@ const token = localStorage.getItem('tr_token');
 if (token) window.location.href = '/dashboard';
 function switchTab(tab) {
   document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
+  document.querySelector(`.auth-tab[onclick="switchTab('${tab}')"]`).classList.add('active');
+  const loginFields = document.getElementById('loginFields');
+  const registerForm = document.getElementById('registerForm');
   if (tab === 'login') {
-    document.getElementById('registerForm').style.display = 'none';
-    document.querySelector('.form-group').closest('div').style.display = 'block';
+    loginFields.style.display = 'block';
+    registerForm.style.display = 'none';
     document.getElementById('loginBtn').style.display = 'block';
   } else {
-    document.getElementById('registerForm').style.display = 'block';
-    document.querySelectorAll('.form-group').forEach(el => el.style.display = 'none');
+    loginFields.style.display = 'none';
+    registerForm.style.display = 'block';
     document.getElementById('loginBtn').style.display = 'none';
   }
 }
