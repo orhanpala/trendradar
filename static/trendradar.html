@@ -6,6 +6,7 @@
 <title>TrendRadar | Yonetim Paneli</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
   :root {
     --orange: #FF7A00;
@@ -155,6 +156,15 @@
   .form-select:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255,122,0,0.1); }
   .ai-result-box { background: var(--white); border: 1px solid var(--border); border-left: 4px solid var(--orange); border-radius: 12px; padding: 20px 22px; font-size: 0.84rem; color: var(--dark); line-height: 1.75; white-space: pre-wrap; box-shadow: var(--card-shadow); min-height: 120px; }
   .ai-result-box.loading { color: var(--slate-light); font-style: italic; }
+  /* AI MARKDOWN TASARIMI */
+  .ai-result-box h1, .ai-result-box h2, .ai-result-box h3 { margin-top: 16px; margin-bottom: 8px; color: var(--dark); font-weight: 800; letter-spacing: -0.01em; }
+  .ai-result-box h1:first-child, .ai-result-box h2:first-child, .ai-result-box h3:first-child { margin-top: 0; }
+  .ai-result-box p { margin-bottom: 12px; }
+  .ai-result-box p:last-child { margin-bottom: 0; }
+  .ai-result-box ul, .ai-result-box ol { margin-left: 24px; margin-bottom: 16px; color: var(--slate); }
+  .ai-result-box li { margin-bottom: 6px; }
+  .ai-result-box strong { color: var(--dark); font-weight: 800; }
+  .ai-result-box em { color: var(--orange); font-style: normal; font-weight: 600; }
 
   /* TREND */
   .trend-search { display: flex; gap: 10px; margin-bottom: 22px; }
@@ -698,10 +708,13 @@ async function runAiAnalysis() {
   btn.textContent = 'Analiz yurutuluyor...';
   resultEl.className = 'ai-result-box loading';
   resultEl.textContent = 'Gemini yapay zeka motoru calistiriliyor. Bu islem 10-20 saniye surebilir...';
-  try {
+ try {
     const data = await apiFetch('/api/ai/analyze', { method: 'POST', body: JSON.stringify({ company_id: state.selectedCompanyId, analysis_type: type }) });
     resultEl.className = 'ai-result-box';
-    resultEl.textContent = data.result;
+    
+    // Gelen metni HTML'e (Markdown) cevir ve ekrana bas
+    resultEl.innerHTML = marked.parse(data.result);
+    
     toast('Analiz tamamlandi.');
   } catch (e) {
     resultEl.textContent = 'Hata: ' + e.message;
