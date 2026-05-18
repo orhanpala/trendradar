@@ -60,6 +60,19 @@ def dashboard():
 class AuthPayload(BaseModel):
     email: str
     password: str
+  
+
+@app.post("/api/auth/register")
+def register(payload: AuthPayload):
+    try:
+        db = get_db()
+        res = db.auth.sign_up({
+            "email": payload.email,
+            "password": payload.password
+        })
+        return {"success": True, "message": "Kayit basarili."}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail="Bu email zaten kayitli veya gecersiz.")
 
 @app.post("/api/auth/login")
 def login(payload: AuthPayload):
