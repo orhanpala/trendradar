@@ -44,7 +44,7 @@ def get_authed_db(token: str) -> Client:
 
 def get_gemini():
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-    return genai.GenerativeModel("gemini-1.5-flash")
+    return genai.GenerativeModel("gemini-pro")
 
 
 # ── PAGES ──
