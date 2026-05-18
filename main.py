@@ -365,29 +365,37 @@ def generate_notifications(user_id: str, company_id: int):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-
-    # ══════════════════════════════
+# ══════════════════════════════
 # TREND RADAR (GOOGLE TRENDS)
 # ══════════════════════════════
 
 @app.get("/api/trends")
 def get_real_trends(keyword: str):
     try:
-        # Google Trends'e Turkiye (tr-TR) ayarlariyla baglan
-        pytrends = TrendReq(hl='tr-TR', tz=-180)
+        # Google'in bot algilamasini (429 Too Many Requests) asmak icin standart bir tarayici kimligi (User-Agent) kullaniyoruz.
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
         
-        # Son 1 aylik (today 1-m) Turkiye (geo='TR') arama verisini talep et
+        pytrends = TrendReq(hl='tr-TR', tz=-180, requests_args={'headers': headers})
+        
         pytrends.build_payload([keyword], cat=0, timeframe='today 1-m', geo='TR')
         data = pytrends.interest_over_time()
         
-        # Eger kelime cok az aratildiysa veya veri yoksa
         if data.empty:
-            return {"success": False, "message": "Bu kelime icin yeterli arama hacmi bulunamadi. Baska bir kelime deneyin."}
+            # Status 500 firlatmak yerine, 200 basarili donup success: False iletiyoruz.
+            return {"success": False, "message": f"'{keyword}' kelimesi icin Turkiye'de yeterli arama hacmi bulunamadi."}
         
-        # Verileri frontend'in anlayacagi yapiya cevir
         labels = [date.strftime('%d %b') for date in data.index]
         values = data[keyword].tolist()
         
         return {"success": True, "labels": labels, "data": values}
+        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Trend verisi cekilemedi: {str(e)}")
+        error_msg = str(e)
+        # Google tarafindan engellenme durumunu yakalayip turkcelestiriyoruz
+        if "429" in error_msg or "TooManyRequests" in error_msg:
+            return {"success": False, "message": "Google Trends anlik sorgu limitine ulasildi. Lutfen 1-2 dakika bekleyip tekrar deneyin."}
+        
+        # Diger teknik hatalar (Zaman asimi vb.)
+        return {"success": False, "message": f"Baglanti hatasi: {error_msg}"}
