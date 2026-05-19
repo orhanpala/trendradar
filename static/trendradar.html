@@ -196,14 +196,14 @@
   .trend-btn { padding: 10px 22px; background: var(--orange); color: var(--white); border: none; border-radius: 9px; font-family: inherit; font-size: 0.875rem; font-weight: 700; cursor: pointer; transition: background 0.15s; }
   .trend-btn:hover { background: #E06A00; }
 
-  /* FIRMA */
+  /* FIRMA & PROFIL */
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .form-group { display: flex; flex-direction: column; gap: 6px; }
   .form-group.full { grid-column: 1 / -1; }
-  .form-input, .form-textarea { padding: 10px 14px; border: 1px solid var(--border); border-radius: 9px; font-family: inherit; font-size: 0.875rem; color: var(--dark); background: var(--white); outline: none; transition: border-color 0.15s; }
-  .form-input:focus, .form-textarea:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255,122,0,0.1); }
+  .form-input, .form-textarea { padding: 10px 14px; border: 1px solid var(--border); border-radius: 9px; font-family: inherit; font-size: 0.875rem; color: var(--dark); background: var(--bg); outline: none; transition: border-color 0.15s; }
+  .form-input:focus, .form-textarea:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(255,122,0,0.1); background: var(--white); }
   .form-textarea { resize: vertical; min-height: 80px; }
-  .form-submit { margin-top: 8px; padding: 11px 28px; background: var(--orange); color: var(--white); border: none; border-radius: 9px; font-family: inherit; font-size: 0.875rem; font-weight: 700; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; gap: 7px; }
+  .form-submit { margin-top: 8px; padding: 11px 28px; background: var(--orange); color: var(--white); border: none; border-radius: 9px; font-family: inherit; font-size: 0.875rem; font-weight: 700; cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
   .form-submit:hover { background: #E06A00; }
   .upload-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 32px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s; margin-top: 16px; }
   .upload-zone:hover { border-color: var(--orange); background: var(--orange-light); }
@@ -363,13 +363,11 @@
     <div class="topbar-title" id="pageTitle">Ana Kokpit</div>
     <div class="topbar-right">
 
-      <!-- Bildirim butonu -->
       <div class="notif-btn" onclick="toggleNotifPanel(event)" id="notifBtn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
         <div class="notif-badge" id="notifBadge"></div>
       </div>
 
-      <!-- Bildirim paneli -->
       <div class="notif-panel" id="notifPanel" onclick="event.stopPropagation()">
         <div class="notif-panel-header">
           <div class="notif-panel-title">Bildirimler</div>
@@ -383,7 +381,6 @@
         </div>
       </div>
 
-      <!-- Kullanici chip -->
       <div class="user-chip" onclick="toggleUserDropdown(event)">
         <div class="avatar" id="userAvatar">TR</div>
         <div>
@@ -392,14 +389,31 @@
         </div>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2.5" style="margin-left:4px"><polyline points="6 9 12 15 18 9"/></svg>
 
-        <!-- Kullanici dropdown -->
         <div class="user-dropdown" id="userDropdown" onclick="event.stopPropagation()">
-          <div class="user-dropdown-email" id="userEmail">yukleniyor...</div>
-          <div class="user-dropdown-item danger" onclick="logout()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
-            Cikis Yap
-          </div>
+        <div class="user-dropdown-email" id="userEmail">yukleniyor...</div>
+        
+        <div class="user-dropdown-item" onclick="showPage('profil', null); toggleUserDropdown(event);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Profilim
         </div>
+        
+        <div class="user-dropdown-item" onclick="showPage('firma', null); toggleUserDropdown(event);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 7V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2M5 21V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v14"/></svg>
+          Firmalarım
+        </div>
+        
+        <div class="user-dropdown-item" onclick="showPage('ayarlar', null); toggleUserDropdown(event);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Ayarlar
+        </div>
+        
+        <hr style="border:none; border-top:1px solid #E2E8F0; margin:4px 0;">
+        
+        <div class="user-dropdown-item danger" onclick="logout()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+          Çıkış Yap
+        </div>
+      </div>
       </div>
 
     </div>
@@ -407,7 +421,6 @@
 
   <div class="content">
 
-    <!-- ANA KOKPIT -->
     <div class="page active" id="page-kokpit">
       <div class="metrics-row">
         <div class="metric-card">
@@ -460,7 +473,6 @@
       </div>
     </div>
 
-    <!-- OTONOM AKSIYONLAR -->
     <div class="page" id="page-otonom">
       <div class="section-title">Otonom Aksiyon Tavsiyeleri</div>
       <p style="font-size:0.82rem;color:var(--slate);margin-bottom:20px;">Gemini yapay zeka motoru, secili firmanin urun verisini analiz ederek aksiyon tavsiyeleri uretir.</p>
@@ -481,7 +493,6 @@
       <div class="ai-result-box loading" id="aiResult">Analiz baslatilmadi. Yukaridan bir tur secip "Analizi Calistir" butonuna basin.</div>
     </div>
 
-    <!-- TREND RADARI -->
     <div class="page" id="page-trend">
       <div class="section-title">Yeni Trend Radari</div>
       <div class="trend-search">
@@ -498,8 +509,7 @@
       </div>
     </div>
 
-    <!-- FIRMA AYARLARI -->
-   <div class="page" id="page-firma">
+    <div class="page" id="page-firma">
       <div class="section-title" style="text-align: center; margin-bottom: 24px;">Firma Kurulum Sihirbazı</div>
       
       <div class="wizard-container">
@@ -561,7 +571,59 @@
 
       </div>
     </div>
-    <!-- GOD MODE -->
+    
+    <div class="page" id="page-profil">
+      <div class="section-title">Hesap Profili</div>
+      <p style="font-size:0.82rem;color:var(--slate);margin-bottom:20px;">Güvenlik ayarlarınızı ve giriş bilgilerinizi buradan yönetebilirsiniz.</p>
+      
+      <div class="form-grid">
+        <div class="panel">
+          <h3 style="font-size:1rem;color:var(--dark);margin-bottom:15px;">E-posta Adresini Güncelle</h3>
+          <div class="form-group" style="margin-bottom:15px;">
+            <label class="form-label">Yeni E-posta Adresi</label>
+            <input type="email" id="prof-email" class="form-input" placeholder="yeni@firma.com">
+          </div>
+          <button class="form-submit" onclick="requestProfileCode('email')">Doğrulama Kodu Gönder</button>
+        </div>
+
+        <div class="panel">
+          <h3 style="font-size:1rem;color:var(--dark);margin-bottom:15px;">Şifre Değiştir</h3>
+          <div class="form-group" style="margin-bottom:15px;">
+            <label class="form-label">Yeni Şifre</label>
+            <input type="password" id="prof-pass" class="form-input" placeholder="En az 6 karakter">
+          </div>
+          <button class="form-submit" onclick="requestProfileCode('password')">Doğrulama Kodu Gönder</button>
+        </div>
+      </div>
+
+      <div id="profil-verification-box" style="display:none; background: #FFFBEB; border:1px solid #F59E0B; padding:24px; border-radius:12px; margin-top:30px; text-align:center;">
+        <h3 style="color:#B45309; margin-bottom:10px;">E-postanıza Gelen 6 Haneli Kodu Girin</h3>
+        <p style="color:#D97706; font-size:0.9rem; margin-bottom:15px;">Güvenliğiniz için mail adresinize gönderilen tek kullanımlık onay kodunu yazın.</p>
+        <input type="text" id="prof-otp-code" maxlength="6" placeholder="123456" style="width:150px; font-size:1.8rem; text-align:center; letter-spacing:6px; padding:8px; background:#FFFFFF; border:2px solid #F59E0B; color:var(--dark); border-radius:8px; font-weight:800; margin-bottom:15px;">
+        <br>
+        <button class="form-submit" style="background:#10B981" onclick="submitProfileUpdate()">Değişiklikleri Onayla</button>
+      </div>
+    </div>
+
+    <div class="page" id="page-ayarlar">
+      <div class="section-title">Sistem Ayarları</div>
+      <p style="font-size:0.82rem;color:var(--slate);margin-bottom:20px;">TrendRadar B2B izleme motoru ve genel platform tercihlerini özelleştirin.</p>
+      <div class="panel">
+        <h3 style="font-size:1rem;color:var(--dark);margin-bottom:20px;">Platform Tercihleri</h3>
+        <div style="display:flex; flex-direction:column; gap:15px;">
+          <label style="display:flex; align-items:center; gap:12px; color:var(--slate); cursor:pointer; font-size: 0.9rem;">
+            <input type="checkbox" checked style="accent-color:var(--orange); width:18px; height:18px;"> Raporlar hazırlandığında e-posta bildirimi gönder.
+          </label>
+          <label style="display:flex; align-items:center; gap:12px; color:var(--slate); cursor:pointer; font-size: 0.9rem;">
+            <input type="checkbox" checked style="accent-color:var(--orange); width:18px; height:18px;"> Kritik stok seviyesi altına düşen ürünleri otonom olarak uyar.
+          </label>
+          <label style="display:flex; align-items:center; gap:12px; color:var(--slate); cursor:pointer; font-size: 0.9rem;">
+            <input type="checkbox" style="accent-color:var(--orange); width:18px; height:18px;"> Haftalık trend değişim özetlerini Excel formatında çıktı ver.
+          </label>
+        </div>
+      </div>
+    </div>
+
     <div class="page" id="page-god">
       <div class="section-title">God Mode — Admin Paneli</div>
       <div class="god-metrics">
@@ -736,31 +798,27 @@ document.addEventListener('click', () => {
 });
 
 // ── STORE ──
-// ── FIRMA SECICI (DROPDOWN) MANTIGI ──
 function renderStoreDropdown() {
   const selectEl = document.getElementById('sidebarCompanySelect');
   if (!selectEl) return;
   
-  selectEl.innerHTML = ''; // İcini temizle
+  selectEl.innerHTML = ''; 
   
   if (state.companies.length === 0) {
     selectEl.innerHTML = '<option value="">Firma Bulunamadı</option>';
     return;
   }
   
-  // Veritabanindaki tum firmalari listeye ekle
   state.companies.forEach(c => {
     const opt = document.createElement('option');
     opt.value = c.id;
     opt.textContent = c.name;
-    // Eger secili olan firma bu ise secili (selected) yap
     if (c.id === state.selectedCompanyId) {
       opt.selected = true;
     }
     selectEl.appendChild(opt);
   });
   
-  // Eger hic secili firma yoksa ilkini otomatik sec
   if (!state.selectedCompanyId && state.companies.length > 0) {
     state.selectedCompanyId = state.companies[0].id;
     selectEl.value = state.selectedCompanyId;
@@ -769,17 +827,12 @@ function renderStoreDropdown() {
 
 function switchCompany(newCompanyId) {
   if (!newCompanyId) return;
-
-  // 1. Yeni firma ID'sini sisteme işlet
   state.selectedCompanyId = parseInt(newCompanyId);
-
-  // 2. Kullanıcıya şık bir bildirim göster
   const selectEl = document.getElementById('sidebarCompanySelect');
   const companyName = selectEl.options[selectEl.selectedIndex].text;
   toast('Aktif Firma: ' + companyName + ' olarak değiştirildi.', 'success');
 
-  // 3. Sistemi Korumaya Al: Firma değiştiğinde verilerin taze ve hatasız gelmesi için ana sayfaya (Kokpit) yönlendir.
-  const kokpitBtn = document.querySelector('.nav-item'); // Menüdeki ilk buton (Kokpit)
+  const kokpitBtn = document.querySelector('.nav-item'); 
   if (kokpitBtn) {
     showPage('kokpit', kokpitBtn);
   }
@@ -803,7 +856,8 @@ function showPage(name, el) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
   if (el) el.classList.add('active');
-  const titles = { kokpit: 'Ana Kokpit', otonom: 'Otonom Aksiyon Tavsiyeleri', trend: 'Yeni Trend Radari', firma: 'Firma Ayarlari', god: 'God Mode — Admin Paneli' };
+  
+  const titles = { kokpit: 'Ana Kokpit', otonom: 'Otonom Aksiyon Tavsiyeleri', trend: 'Yeni Trend Radari', firma: 'Firma Ayarlari', god: 'God Mode — Admin Paneli', profil: 'Hesap Profili', ayarlar: 'Sistem Ayarları' };
   document.getElementById('pageTitle').textContent = titles[name] || '';
   if (name === 'kokpit') loadKokpit();
   if (name === 'god') loadGodMode();
@@ -907,13 +961,11 @@ async function renderTrendChart() {
   const btn = document.querySelector('.trend-btn');
   const originalText = btn.textContent;
   
-  // Yuklenme durumu
   btn.disabled = true;
   btn.textContent = 'Veri Cekiliyor...';
   document.getElementById('trendPanelTitle').textContent = `"${kw}" araniyor...`;
   
   try {
-   // Gercek API'mize istek atiyoruz
     const res = await apiFetch(`/api/trends?keyword=${encodeURIComponent(kw)}`);
     
     if (res.success === false) {
@@ -928,7 +980,6 @@ async function renderTrendChart() {
 
     document.getElementById('trendPanelTitle').textContent = `"${kw}" — Talep Trendi`;
     
-    // Eger veri Fallback motorundan geldiyse, kullaniciyi şık bir sekilde bilgilendir
     if (res.is_mock) {
       document.getElementById('trendPanelSub').innerHTML = `<span style="color: var(--orange); font-weight: 700;">[Sistem Notu]</span> Bulut sunucu IP kısıtlaması nedeniyle algoritmik simülasyon gösterilmektedir.`;
       toast('Canli veri baglantisi saglanamadi, yedek algoritmaya gecildi.', 'warning');
@@ -939,7 +990,6 @@ async function renderTrendChart() {
     const ctx = document.getElementById('trendChart').getContext('2d');
     if (state.trendChartInst) state.trendChartInst.destroy();
     
-    // Grafigi cizdir
     state.trendChartInst = new Chart(ctx, {
       type: 'line',
       data: { 
@@ -981,8 +1031,6 @@ async function renderTrendChart() {
 }
 
 // ── FIRMA ──
-
-
 function handleCsvUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -996,11 +1044,16 @@ function handleCsvUpload(event) {
       headers.forEach((h, i) => obj[h] = vals[i]?.trim() || '');
       return obj;
     }).filter(p => p.name);
+    
     document.getElementById('csvPreviewTable').innerHTML = `
-      <div style="font-size:0.75rem;color:var(--slate);margin-bottom:8px">${state.csvProducts.length} urun bulundu</div>
-      <div class="table-wrap"><table><thead><tr><th>Ad</th><th>Kategori</th><th>Fiyat</th><th>Stok</th></tr></thead>
+      <div style="font-size:0.75rem;color:var(--slate);margin-bottom:8px">${state.csvProducts.length} ürün bulundu</div>
+      <div class="table-wrap" style="max-height: 200px; overflow-y: auto;"><table><thead><tr><th>Ad</th><th>Kategori</th><th>Fiyat</th><th>Stok</th></tr></thead>
       <tbody>${state.csvProducts.slice(0,5).map(p=>`<tr><td>${p.name}</td><td>${p.category||'-'}</td><td>${p.price||'-'}</td><td>${p.stock||'-'}</td></tr>`).join('')}</tbody></table></div>`;
     document.getElementById('csvPreview').style.display = 'block';
+    
+    if(state.csvProducts.length > 0) {
+        document.getElementById('btn-w-2').disabled = false;
+    }
   };
   reader.readAsText(file);
 }
@@ -1028,16 +1081,13 @@ async function processWizardStep1() {
       }) 
     });
     
-    // Firma olusturuldu, ID'yi sihirbaz hafizasina al
     wizardCreatedCompanyId = res.data.id;
     document.getElementById('wizard-company-name-label').innerHTML = `<strong style="color:var(--dark)">${name}</strong> profili oluşturuldu. Lütfen CSV envanterini yükleyin.`;
     
-    // Ana sisteme ekle ve dropdown'i guncelle
     const data = await apiFetch('/api/companies');
     state.companies = data.data;
     renderStoreDropdown();
     
-    // 2. Adima Gecis
     document.getElementById('w-pane-1').classList.remove('active');
     document.getElementById('w-pane-2').classList.add('active');
     document.getElementById('w-step-1').classList.add('completed');
@@ -1050,35 +1100,6 @@ async function processWizardStep1() {
     btn.disabled = false;
     btn.textContent = 'Kaydet ve Devam Et';
   }
-}
-
-// CSV Yükleme handler'i icinde butonu aktif etme (handleCsvUpload icine bu satiri ekledik)
-function handleCsvUpload(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  document.getElementById('csvFileName').textContent = file.name;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const lines = e.target.result.split('\n').filter(l => l.trim());
-    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-    state.csvProducts = lines.slice(1).map(line => {
-      const vals = line.split(','); const obj = {};
-      headers.forEach((h, i) => obj[h] = vals[i]?.trim() || '');
-      return obj;
-    }).filter(p => p.name);
-    
-    document.getElementById('csvPreviewTable').innerHTML = `
-      <div style="font-size:0.75rem;color:var(--slate);margin-bottom:8px">${state.csvProducts.length} ürün bulundu</div>
-      <div class="table-wrap" style="max-height: 200px; overflow-y: auto;"><table><thead><tr><th>Ad</th><th>Kategori</th><th>Fiyat</th><th>Stok</th></tr></thead>
-      <tbody>${state.csvProducts.slice(0,5).map(p=>`<tr><td>${p.name}</td><td>${p.category||'-'}</td><td>${p.price||'-'}</td><td>${p.stock||'-'}</td></tr>`).join('')}</tbody></table></div>`;
-    document.getElementById('csvPreview').style.display = 'block';
-    
-    // Urun bulundugunda yukleme butonunu aktif et
-    if(state.csvProducts.length > 0) {
-        document.getElementById('btn-w-2').disabled = false;
-    }
-  };
-  reader.readAsText(file);
 }
 
 async function processWizardStep2() {
@@ -1100,7 +1121,7 @@ async function processWizardStep2() {
     await apiFetch('/api/products/bulk', { method: 'POST', body: JSON.stringify(products) });
     
     state.csvProducts = [];
-    skipToStep3(); // 3. adima gec
+    skipToStep3(); 
     
   } catch (e) { 
     toast('Yükleme hatası: ' + e.message, 'error'); 
@@ -1118,18 +1139,16 @@ function skipToStep3() {
 }
 
 function finishWizard() {
-  // Olusturulan yeni firmayi secip ana kokpite don
   state.selectedCompanyId = wizardCreatedCompanyId;
   renderStoreDropdown();
   showPage('kokpit', document.querySelector('.nav-item'));
-  setTimeout(resetWizard, 500); // Arka planda sihirbazi sifirla
+  setTimeout(resetWizard, 500);
 }
 
 function resetWizard() {
   wizardCreatedCompanyId = null;
   state.csvProducts = [];
   
-  // Formlari temizle
   ['f-name','f-sector','f-email','f-phone','f-notes'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('csvFile').value = '';
   document.getElementById('csvFileName').textContent = 'Gerekli Sütunlar: name, category, price, stock (Maks. 10 MB)';
@@ -1137,15 +1156,66 @@ function resetWizard() {
   document.getElementById('btn-w-2').disabled = true;
   document.getElementById('btn-w-2').textContent = 'Ürünleri Yükle ve Tamamla';
   
-  // Pane'leri sifirla
   document.querySelectorAll('.wizard-pane').forEach(p => p.classList.remove('active'));
   document.getElementById('w-pane-1').classList.add('active');
   
-  // Step cizgilerini sifirla
   document.querySelectorAll('.wizard-step').forEach(s => {
     s.classList.remove('active', 'completed');
   });
   document.getElementById('w-step-1').classList.add('active');
+}
+
+// ── PROFILE UPDATE ──
+let currentProfileTaskType = '';
+
+async function requestProfileCode(type) {
+  const value = type === 'email' ? document.getElementById('prof-email').value.trim() : document.getElementById('prof-pass').value;
+  if(!value) { toast('Lütfen gerekli alanı doldurun.', 'error'); return; }
+  if(type === 'password' && value.length < 6) { toast('Şifre en az 6 karakter olmalıdır.', 'error'); return; }
+  
+  try {
+    const token = localStorage.getItem('tr_token');
+    const res = await fetch('/api/profile/send-code', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ type, value })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.detail || 'Kod gönderilemedi.');
+    
+    currentProfileTaskType = type;
+    toast('6 Haneli doğrulama kodu e-postanıza gönderildi!', 'success');
+    document.getElementById('profil-verification-box').style.display = 'block';
+  } catch(err) {
+    toast(err.message, 'error');
+  }
+}
+
+async function submitProfileUpdate() {
+  const code = document.getElementById('prof-otp-code').value.trim();
+  if(code.length !== 6) { toast('Lütfen 6 haneli kodu eksiksiz girin.', 'error'); return; }
+  
+  try {
+    const token = localStorage.getItem('tr_token');
+    const res = await fetch('/api/profile/update', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ code })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.detail || 'Güncelleme başarısız.');
+    
+    toast('Bilgileriniz başarıyla güncellendi! Yeni bilgilerinizle giriş yapın.', 'success');
+    setTimeout(() => logout(), 2000);
+  } catch(err) {
+    toast(err.message, 'error');
+  }
 }
 
 // ── GOD MODE ──

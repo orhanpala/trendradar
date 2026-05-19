@@ -1,3 +1,7 @@
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import secrets
 import requests
 import random
 from datetime import datetime, timedelta
@@ -461,3 +465,93 @@ def get_real_trends(keyword: str):
             "is_mock": True,
             "message": f"Gercek veri alinamadi, algoritmik simulasyon devrede."
         }
+class SendCodePayload(BaseModel):
+    type: str  # "email" veya "password"
+    value: str # Yeni e-posta adresi veya yeni şifre
+
+@app.post("/api/profile/send-code")
+def send_profile_code(request: Request, payload: SendCodePayload):
+    try:
+        user_id = get_current_user_id(request)
+        db = get_db()
+        
+        # Mevcut token ile kullanıcının şu anki mailini öğrenelim
+        token = request.headers.get("Authorization", "").replace("Bearer ", "")
+        user_res = db.auth.get_user(token)
+        current_email = user_res.user.email
+        
+        # 6 haneli rastgele kod üret
+        code = str(secrets.randbetween(100000, 999999) if hasattr(secrets, 'randbetween') else random.randint(100000, 999999))
+        
+        # Kodu 10 dakika geçerli olacak şekilde hafızaya al
+        verification_codes[user_id] = {
+            "code": code,
+            "type": payload.type,
+            "value": payload.value,
+            "expires": datetime.now() + timedelta(minutes=10)
+        }
+        
+        # Güvenli kod mailini gönderme (Resend SMTP altyapısı ile)
+        msg = MIMEMultipart()
+        msg['From'] = "TrendRadar <onboarding@resend.dev>"
+        msg['To'] = current_email
+        msg['Subject'] = "TrendRadar - Güvenlik Onay Kodu"
+        
+        action_text = "E-posta değiştirme" if payload.type == "email" else "Şifre değiştirme"
+        html = f"""
+        <div style="font-family:sans-serif; padding:20px; color:#1e293b;">
+          <h2 style="color:#FF7A00;">TrendRadar Güvenlik Onayı</h2>
+          <p>Hesabınızda <strong>{action_text}</strong> talebinde bulunuldu. İşlemi tamamlamak için kullanmanız gereken 6 haneli onay kodunuz:</p>
+          <div style="background:#f1f5f9; padding:15px; text-align:center; font-size:2rem; font-weight:800; letter-spacing:8px; color:#0f172a; border-radius:8px; margin:20px 0;">
+            {code}
+          </div>
+          <p>Bu kod 10 dakika boyunca geçerlidir. Bu talebi siz yapmadıysanız lütfen hesap şifrenizi güvenli bir şifreyle güncelleyin.</p>
+        </div>
+        """
+        msg.attach(MIMEText(html, 'html'))
+        
+        smtp_password = os.getenv("RESEND_API_KEY")
+        with smtplib.SMTP_SSL('smtp.resend.com', 465) as server:
+            server.login('resend', smtp_password)
+            server.sendmail("onboarding@resend.dev", current_email, msg.as_string())
+            
+        return {"success": True, "message": "Onay kodu e-posta adresinize gönderildi."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class VerifyCodePayload(BaseModel):
+    code: str
+
+@app.post("/api/profile/update")
+def update_profile(request: Request, payload: VerifyCodePayload):
+    try:
+        user_id = get_current_user_id(request)
+        token = request.headers.get("Authorization", "").replace("Bearer ", "")
+        
+        if user_id not in verification_codes:
+            raise HTTPException(status_code=400, detail="Aktif bir onay kodu talebi bulunamadı.")
+            
+        saved = verification_codes[user_id]
+        
+        if datetime.now() > saved["expires"]:
+            del verification_codes[user_id]
+            raise HTTPException(status_code=400, detail="Kodun süresi dolmuş. Lütfen yeniden kod isteyin.")
+            
+        if saved["code"] != payload.code.strip():
+            raise HTTPException(status_code=400, detail="Girdiğiniz 6 haneli kod hatalı.")
+            
+        # Kod doğru! Supabase üzerinde güncellemeyi yapalım
+        db = get_authed_db(token)
+        update_data = {}
+        if saved["type"] == "email":
+            update_data["email"] = saved["value"]
+        elif saved["type"] == "password":
+            update_data["password"] = saved["value"]
+            
+        db.auth.update_user(update_data)
+        
+        # Kod havuzunu temizle
+        del verification_codes[user_id]
+        return {"success": True, "message": "Bilgileriniz başarıyla güncellendi."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
