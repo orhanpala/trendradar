@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TrendRadar | Yonetim Paneli</title>
+<title>TrendRadar | YÖnetim Paneli</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -582,7 +582,7 @@
         </div>
       </div>
 
-      <div class="bottom-grid" id="trendBottomGrid" style="display:none; grid-template-columns: 2fr 1fr; gap: 16px; flex-direction:row;">
+      <div class="bottom-grid" id="trendBottomGrid" style="display:none; grid-template-columns: 2fr 1fr; gap: 16px;">
         
         <div class="panel" style="margin-bottom:0; width:100%;">
           <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
@@ -599,29 +599,27 @@
           <div class="chart-area"><canvas id="trendChart"></canvas></div>
         </div>
         
-        <div style="display:flex; flex-direction:column; gap:16px; width:100%;">
-          
-          <div class="panel ai-insight-panel" style="margin-bottom:0; width:100%;">
-            <div class="panel-header" style="margin-bottom:12px;">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#8B5CF6" stroke-width="2"><path d="M12 2a2 2 0 0 1 2 2c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2zm0 18a2 2 0 0 1-2-2c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2zm8-10a2 2 0 0 1-2-2c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2zM4 10a2 2 0 0 1-2-2c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2z"/><path d="M12 6v12M6 12h12"/></svg>
-              <div class="panel-title" style="color:#0F172A;">Gemini-2.5-Pro Pazar İçgörüsü</div>
-            </div>
-            <div id="aiTrendCommentary" style="font-size:0.85rem; color:var(--slate); line-height:1.7;">
-              Analiz bekleniyor...
-            </div>
+        <div class="panel ai-insight-panel" style="margin-bottom:0; width:100%;">
+          <div class="panel-header" style="margin-bottom:12px;">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#8B5CF6" stroke-width="2"><path d="M12 2a2 2 0 0 1 2 2c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2zm0 18a2 2 0 0 1-2-2c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2zm8-10a2 2 0 0 1-2-2c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2zM4 10a2 2 0 0 1-2-2c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2z"/><path d="M12 6v12M6 12h12"/></svg>
+            <div class="panel-title" style="color:#0F172A;">Gemini-2.5-Pro Pazar İçgörüsü</div>
           </div>
-
-          <div class="panel" style="margin-bottom:0; width:100%; padding:20px;">
-            <div class="panel-header" style="margin-bottom:14px;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-              <div class="panel-title">Yükselen Alt Trendler</div>
-            </div>
-            <div id="relatedTrendsList" style="display:flex; flex-direction:column; gap:10px;">
-              <span style="color:var(--slate-light); font-size:0.8rem;">Yükleniyor...</span>
-            </div>
+          <div id="aiTrendCommentary" style="font-size:0.85rem; color:var(--slate); line-height:1.7;">
+            Analiz bekleniyor...
           </div>
-
         </div>
+
+        <div class="panel" style="grid-column: 1 / -1; margin-bottom:0; width:100%; padding:20px;">
+          <div class="panel-header" style="margin-bottom:14px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            <div class="panel-title">Yükselen Alt Trendler</div>
+          </div>
+          <div id="relatedTrendsList" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px;">
+            <span style="color:var(--slate-light); font-size:0.8rem;">Yükleniyor...</span>
+          </div>
+        </div>
+
+      </div>
       </div>
     </div>
 
