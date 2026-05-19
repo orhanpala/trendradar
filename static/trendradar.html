@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TrendRadar | YÖnetim Paneli</title>
+<title>TrendRadar | Yönetim Paneli</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -616,6 +616,17 @@
           </div>
           <div id="relatedTrendsList" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px;">
             <span style="color:var(--slate-light); font-size:0.8rem;">Yükleniyor...</span>
+          </div>
+        
+        </div>
+
+        <div class="panel" style="grid-column: 1 / -1; margin-bottom:0; width:100%; padding:20px;">
+          <div class="panel-header" style="margin-bottom:14px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <div class="panel-title">Görsel Zeka & Referans Vitrini</div>
+          </div>
+          <div id="trendImagesGallery" style="display:grid; grid-template-columns: repeat(5, 1fr); gap:16px;">
+            <span style="color:var(--slate-light); font-size:0.8rem;">Görseller AI tarafından analiz ediliyor...</span>
           </div>
         </div>
 
@@ -1231,6 +1242,36 @@ async function renderTrendChart() {
         "yedek parça",
         "kutu açılışı"
       ];
+
+
+      // YENİ: Görsel Zeka Motoru (Pollinations AI üzerinden anlık görsel üretimi/çekimi)
+      const gallery = document.getElementById('trendImagesGallery');
+      
+      // 5 Farklı konsept belirliyoruz (Stüdyo, Yaşam Tarzı, Detay vs.)
+      const imagePrompts = [
+        `${kw} professional product photography, white background, high resolution`,
+        `${kw} being used by a person, lifestyle photography, cinematic lighting`,
+        `${kw} modern design, close up macro shot, detailed`,
+        `${kw} in a retail store display, bright lighting`,
+        `${kw} creative advertisement style, vibrant colors`
+      ];
+
+      let imagesHtml = '';
+      imagePrompts.forEach((promptText, index) => {
+        // AI'dan görseli anlık olarak talep ediyoruz (Her resim eşsiz olsun diye random seed ekliyoruz)
+        const randomSeed = Math.floor(Math.random() * 10000);
+        const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptText)}?width=300&height=300&nologo=true&seed=${randomSeed}`;
+        
+        imagesHtml += `
+          <div style="border-radius:12px; overflow:hidden; border:1px solid var(--border); aspect-ratio: 1/1; cursor:pointer; background:var(--bg);">
+            <img src="${imgUrl}" style="width:100%; height:100%; object-fit:cover; transition:transform 0.3s ease;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" alt="${kw} referans ${index+1}">
+          </div>
+        `;
+      });
+      
+      gallery.innerHTML = imagesHtml;
+
+
       const trendsHtml = suffixes.map((s, index) => `
         <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--bg); border-radius:8px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='var(--orange-light)'" onmouseout="this.style.background='var(--bg)'" onclick="setTrendSearch('${kw} ${s}')">
           <span style="font-size:0.8rem; font-weight:600; color:var(--dark);">${kw} ${s}</span>
