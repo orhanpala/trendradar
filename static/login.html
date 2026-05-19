@@ -222,6 +222,15 @@
   <button class="submit-btn" onclick="register()" id="registerBtn">Kayit Ol</button>
 </div>
     <button class="submit-btn" onclick="login()" id="loginBtn">Giris Yap</button>
+    <button type="button" onclick="loginWithGoogle()" style="width:100%; padding:11px; background:#ffffff; color:#1e293b; border:1px solid #e2e8f0; border-radius:9px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; margin-top:12px;">
+  <svg width="18" height="18" viewBox="0 0 24 24">
+    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v3.92h6.61c-.29 1.53-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-8.58z"/>
+    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.11 0-5.74-2.11-6.68-4.96H1.21v3.15C3.18 21.88 7.31 24 12 24z"/>
+    <path fill="#FBBC05" d="M5.32 14.24c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.51H1.21A11.94 11.94 0 0 0 0 12c0 1.92.45 3.79 1.21 5.49l4.11-3.25z"/>
+    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.43-3.43C17.95 1.19 15.24 0 12 0 7.31 0 3.18 2.12 1.21 6.51l4.11 3.25c.94-2.85 3.57-4.96 6.68-4.96z"/>
+  </svg>
+  Google ile Giriş Yap
+</button>
 
     <div class="error-box" id="errorBox"></div>
 
@@ -235,6 +244,49 @@
 </div>
 
 <script>
+
+async function loginWithGoogle() {
+  try {
+    const res = await fetch('/api/auth/google-url');
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    }
+  } catch (err) {
+    showError('Google giriş adresi alınamadı.');
+  }
+}
+
+// Google dönüşünde URL'deki token yapısını yakalayan ve oturum açan kontrolcü
+window.addEventListener('DOMContentLoaded', async () => {
+  const hash = window.location.hash;
+  if (hash && hash.includes('access_token=')) {
+    const params = new URLSearchParams(hash.replace('#', '?'));
+    const token = params.get('access_token');
+    
+    if (token) {
+      try {
+        // Token'ı kullanarak kullanıcı detaylarını backend'den çekelim
+        const res = await fetch('/api/auth/user-details', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Kullanıcı bilgileri doğrulanamadı.');
+        const user = await res.json();
+        
+        // trendradar.html'in beklediği formatta verileri yerel hafızaya kaydedelim
+        localStorage.setItem('tr_token', token);
+        localStorage.setItem('tr_user', JSON.stringify(user));
+        
+        // Ana yönetim paneline yönlendir
+        window.location.href = '/trendradar.html';
+      } catch (err) {
+        showError('Google ile oturum açma işlemi başarısız oldu.');
+      }
+    }
+  }
+});
+
+
 async function login() {
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;

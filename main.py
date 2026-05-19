@@ -555,3 +555,27 @@ def update_profile(request: Request, payload: VerifyCodePayload):
         return {"success": True, "message": "Bilgileriniz başarıyla güncellendi."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+@app.get("/api/auth/google-url")
+def get_google_auth_url():
+    try:
+        supabase_url = os.getenv("SUPABASE_URL")
+        # Kullanıcı giriş yaptıktan sonra yönlendirileceği ön yüz adresi
+        # Canlıya aldığınızda buraya Render üzerindeki login adresi yazılmalıdır (Örn: https://projeniz.onrender.com/login.html)
+        redirect_url = "http://localhost:8000/login.html" 
+        
+        auth_url = f"{supabase_url}/auth/v1/authorize?provider=google&redirect_to={redirect_url}"
+        return {"url": auth_url}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/auth/user-details")
+def get_user_details(request: Request):
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    if not token:
+        raise HTTPException(status_code=401, detail="Token bulunamadi.")
+    try:
+        db = get_db()
+        user_res = db.auth.get_user(token)
+        return {"email": user_res.user.email}
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=str(e))
