@@ -602,7 +602,7 @@
         <div class="panel ai-insight-panel" style="margin-bottom:0; width:100%;">
           <div class="panel-header" style="margin-bottom:12px;">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#8B5CF6" stroke-width="2"><path d="M12 2a2 2 0 0 1 2 2c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2zm0 18a2 2 0 0 1-2-2c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2zm8-10a2 2 0 0 1-2-2c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2zM4 10a2 2 0 0 1-2-2c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2z"/><path d="M12 6v12M6 12h12"/></svg>
-            <div class="panel-title" style="color:#0F172A;">Gemini-2.5-Pro Pazar İçgörüsü</div>
+            <div class="panel-title" style="color:#0F172A;">Gemini Pazar İçgörüsü</div>
           </div>
           <div id="aiTrendCommentary" style="font-size:0.85rem; color:var(--slate); line-height:1.7;">
             Analiz bekleniyor...
@@ -1209,7 +1209,28 @@ async function renderTrendChart() {
       `;
       
       // YENİ: İlgili Alt Trendleri Dinamik Olarak Üret ve Ekrana Bas
-      const suffixes = ["fiyatları", "modelleri", "önerisi", "kullanıcı yorumları"];
+      const suffixes = [
+        "fiyatları", 
+        "modelleri", 
+        "önerisi", 
+        "kullanıcı yorumları", 
+        "karşılaştırma", 
+        "inceleme", 
+        "kampanyaları", 
+        "özellikleri",
+        "en ucuz",
+        "en iyi",
+        "satın al",
+        "indirimleri",
+        "şikayetleri",
+        "nasıl kullanılır",
+        "ikinci el",
+        "aksesuarları",
+        "toptan",
+        "kurulumu",
+        "yedek parça",
+        "kutu açılışı"
+      ];
       const trendsHtml = suffixes.map((s, index) => `
         <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--bg); border-radius:8px; cursor:pointer; transition:all 0.2s;" onmouseover="this.style.background='var(--orange-light)'" onmouseout="this.style.background='var(--bg)'" onclick="setTrendSearch('${kw} ${s}')">
           <span style="font-size:0.8rem; font-weight:600; color:var(--dark);">${kw} ${s}</span>
