@@ -733,3 +733,78 @@ def send_bulk_email(payload: BulkEmailPayload):
         return {"success": True, "message": f"{sent_count} adet e-posta başarıyla gönderildi."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+class UpdateProductPayload(BaseModel):
+    stock: int
+    price: float
+
+class UpdateProductPayload(BaseModel):
+    stock: int
+    price: float
+
+# YENİ KOD: PUT yerine POST kullanıyoruz ve adresi tamamen benzersiz yapıyoruz
+@app.post("/api/products/update-manual/{product_id}")
+def update_product_manual(product_id: int, payload: UpdateProductPayload, request: Request):
+    try:
+        token = request.headers.get("Authorization", "").replace("Bearer ", "")
+        db = get_db() if not token else get_authed_db(token)
+        
+        db.table("products").update({
+            "stock": payload.stock,
+            "price": payload.price
+        }).eq("id", product_id).execute()
+        
+        return {"success": True, "message": "Ürün başarıyla güncellendi."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+class SyncProductsPayload(BaseModel):
+    company_id: int
+    products: list[dict]
+
+@app.post("/api/products/sync")
+def sync_products(payload: SyncProductsPayload, request: Request):
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    db = get_db() if not token else get_authed_db(token)
+
+    try:
+        # 1. Firmanın mevcut ürünlerini veritabanından çek
+        res = db.table("products").select("id, name").eq("company_id", payload.company_id).execute()
+        existing_products = res.data if hasattr(res, 'data') else []
+        
+        # Ürün isimlerini küçük harfe çevirerek bir ID sözlüğü oluşturalım (Hızlı arama için)
+        name_to_id = {p["name"].strip().lower(): p["id"] for p in existing_products}
+
+        new_items = []
+        update_count = 0
+        
+        # 2. Yüklenen CSV'deki her bir ürünü kontrol et
+        for p in payload.products:
+            name_key = p["name"].strip().lower()
+            
+            if name_key in name_to_id:
+                # Ürün sistemde var -> SADECE GÜNCELLE
+                db.table("products").update({
+                    "stock": int(p.get("stock", 0)),
+                    "price": float(p.get("price", 0)),
+                    "category": p.get("category", "")
+                }).eq("id", name_to_id[name_key]).execute()
+                update_count += 1
+            else:
+                # Ürün sistemde yok -> YENİ ÜRÜN OLARAK EKLE
+                new_items.append({
+                    "company_id": payload.company_id,
+                    "name": p["name"],
+                    "category": p.get("category", ""),
+                    "price": float(p.get("price", 0)),
+                    "stock": int(p.get("stock", 0))
+                })
+        
+        # 3. Yeni ürünleri topluca veritabanına yaz
+        if new_items:
+            db.table("products").insert(new_items).execute()
+
+        return {
+            "success": True, 
+            "message": f"{update_count} ürün güncellendi, {len(new_items)} yeni ürün eklendi!"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

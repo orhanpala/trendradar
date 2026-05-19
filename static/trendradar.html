@@ -943,7 +943,6 @@ function renderProductList() {
   `).join('');
 }
 
-// GÜNCELLEME İŞLEMİNİ YAPAN FONKSİYON
 async function updateProductInfo(id, name, currentPrice, currentStock) {
   const newStock = prompt(`"${name}" için yeni STOK miktarını giriniz:`, currentStock);
   if (newStock === null || newStock.trim() === "") return;
@@ -952,8 +951,9 @@ async function updateProductInfo(id, name, currentPrice, currentStock) {
   if (newPrice === null || newPrice.trim() === "") return;
 
   try {
-    const res = await apiFetch(`/api/products/${id}`, {
-      method: 'PUT',
+    // YENİ KOD: Adresi "/update-manual/" yaptık ve methodu 'POST' olarak değiştirdik.
+    const res = await apiFetch(`/api/products/update-manual/${id}`, {
+      method: 'POST',
       body: JSON.stringify({
         stock: parseInt(newStock),
         price: parseFloat(newPrice)
@@ -966,7 +966,6 @@ async function updateProductInfo(id, name, currentPrice, currentStock) {
     toast(err.message, 'error');
   }
 }
-
 // ── AI ──
 async function runAiAnalysis() {
   if (!state.selectedCompanyId) { toast('Once bir firma secin.', 'error'); return; }
