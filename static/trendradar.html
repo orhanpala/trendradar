@@ -159,8 +159,8 @@
   .metric-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.72rem; font-weight: 600; padding: 3px 8px; border-radius: 999px; }
   .badge-green{background:#F0FDF4;color:#059669} .badge-gray{background:#F1F5F9;color:var(--slate)} .badge-red{background:#FEF2F2;color:var(--red)} .badge-orange{background:var(--orange-light);color:var(--orange)}
 
-  /* BOTTOM GRID */
-  .bottom-grid { display: grid; grid-template-columns: 1fr 360px; gap: 16px; }
+ /* BOTTOM GRID */
+  .bottom-grid { display: flex; flex-direction: column; gap: 24px; }
   .panel { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; box-shadow: var(--card-shadow); animation: fadeUp 0.4s ease both; animation-delay: 0.2s; }
   .panel-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
   .panel-header svg { width: 17px; height: 17px; color: var(--slate); }
@@ -476,7 +476,7 @@
             <input type="file" id="syncCsvFile" accept=".csv" style="display:none" onchange="handleSmartCsvSync(event)">
           </div>
           <div style="margin-bottom:12px"></div>
-          <div id="productList" style="max-height:260px;overflow-y:auto;"><div class="empty-state">Yukleniyor...</div></div>
+          <div id="productList" style="max-height:400px;overflow-y:auto;"><div class="empty-state">Yukleniyor...</div></div>
         </div>
       </div>
     </div>
