@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrendRadar | Global Admin Kontrol Merkezi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --orange: #FF7A00;
+      --dark: #0F172A;
+      --dark2: #1E293B;
+      --border: #334155;
+      --text-light: #94A3B8;
+      --white: #FFFFFF;
+      --red: #EF4444;
+      --green: #10B981;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--dark); color: var(--white); min-height: 100vh; }
+    
+    /* GİRİŞ EKRANI */
+    .login-wrapper { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+    .login-card { background: var(--dark2); border: 1px solid var(--border); padding: 40px; border-radius: 16px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+    .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .form-group label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-light); }
+    .form-input { padding: 12px; background: var(--dark); border: 1px solid var(--border); border-radius: 8px; color: white; outline: none; font-family: inherit; }
+    .form-input:focus { border-color: var(--orange); }
+    .btn { width: 100%; padding: 12px; background: var(--orange); color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .btn:hover { background: #E06A00; }
+    
+    /* DASHBOARD EKRANI */
+    .admin-container { display: none; min-height: 100vh; }
+    .admin-container.active { display: flex; }
+    .admin-sidebar { width: 260px; background: var(--dark2); border-right: 1px solid var(--border); padding: 30px 20px; display: flex; flex-direction: column; gap: 30px; }
+    .admin-content { flex: 1; padding: 40px; overflow-y: auto; }
+    .menu-item { padding: 12px 16px; border-radius: 8px; color: var(--text-light); font-weight: 600; cursor: pointer; list-style: none; transition: all 0.2s; }
+    .menu-item:hover, .menu-item.active { background: rgba(255,122,0,0.15); color: var(--orange); }
+    
+    .panel-card { background: var(--dark2); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th { background: var(--dark); color: var(--text-light); font-size: 0.75rem; text-transform: uppercase; padding: 12px; text-align: left; }
+    td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+    
+    .status-badge { padding: 4px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; }
+    .status-badge.live { background: rgba(16,185,129,0.2); color: var(--green); }
+    .status-badge.maintenance { background: rgba(239,68,68,0.2); color: var(--red); }
+    
+    .log-row { font-family: 'DM Mono', monospace; font-size: 0.8rem; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; gap: 15px; }
+    .log-time { color: var(--orange); }
+    .log-user { color: var(--text-light); font-weight: 700; }
+  </style>
+</head>
+<body>
+
+  <div class="login-wrapper" id="loginWrapper">
+    <div class="login-card">
+      <h2 style="margin-bottom: 6px; font-weight: 800;">Yönetici Paneli</h2>
+      <p style="color: var(--text-light); font-size: 0.8rem; margin-bottom: 24px;">Sistem ayarları için kimlik doğrulaması gereklidir.</p>
+      <div class="form-group">
+        <label>Kullanıcı Adı</label>
+        <input type="text" id="adm-user" class="form-input" placeholder="Admin kullanıcı adı">
+      </div>
+      <div class="form-group" style="margin-bottom: 24px;">
+        <label>Güvenli Şifre</label>
+        <input type="password" id="adm-pass" class="form-input" placeholder="••••••••">
+      </div>
+      <button class="btn" onclick="handleAdminLogin()">Güvenli Giriş Yap</button>
+    </div>
+  </div>
+
+  <div class="admin-container" id="adminContainer">
+    <div class="admin-sidebar">
+      <div>
+        <h2 style="font-weight: 800; font-size: 1.4rem;">trend<span style="color:var(--orange)">Radar</span></h2>
+        <p style="font-size: 0.65rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; margin-top:4px;">Global Control</p>
+      </div>
+      <ul style="display:flex; flex-direction:column; gap:6px;">
+        <li class="menu-item active" onclick="switchTab('users', this)">Kullanıcılar & Firmalar</li>
+        <li class="menu-item" onclick="switchTab('status', this)">Site Ayarları & Canlılık</li>
+        <li class="menu-item" onclick="switchTab('emails', this)">E-Posta Bülteni</li>
+        <li class="menu-item" onclick="switchTab('logs', this)">Sistem Logları</li>
+        <li class="menu-item" onclick="adminLogout()" style="color:var(--red); margin-top:40px;">Güvenli Çıkış</li>
+      </ul>
+    </div>
+    
+    <div class="admin-content">
+      <div id="tab-users" class="tab-content active">
+        <div class="panel-card">
+          <h2 style="font-size: 1.2rem; margin-bottom: 6px;">Sistemdeki Aktif Kullanıcı Profil Özetleri</h2>
+          <p style="color:var(--text-light); font-size:0.85rem;">Supabase üzerinde kayıtlı olan ve firma ekleyen kullanıcıların listesi.</p>
+          <table>
+            <thead><tr><th>Kullanıcı ID (Email Kökü)</th><th>Oluşturduğu Firma Sayısı</th><th>Son Sektör Tercihi</th></tr></thead>
+            <tbody id="usersTableBody"><tr><td colspan="3">Yükleniyor...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="panel-card">
+          <h2 style="font-size: 1.2rem; margin-bottom: 6px;">Tüm Firmalar</h2>
+          <table>
+            <thead><tr><th>Firma Adı</th><th>Sektör</th><th>İletişim Mail</th><th>Firma ID</th></tr></thead>
+            <tbody id="companiesTableBody"><tr><td colspan="4">Yükleniyor...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="tab-status" class="tab-content">
+        <div class="panel-card">
+          <h2 style="font-size: 1.2rem; margin-bottom: 6px;">Sistem Canlılık Durumu (Kill-Switch)</h2>
+          <p style="color:var(--text-light); font-size:0.85rem; margin-bottom: 20px;">Sitenin erişimini tek tuşla durdurup bakım moduna alabilirsiniz. Admin paneli bu durumdan etkilenmez.</p>
+          <div style="display:flex; align-items:center; gap:20px;">
+            <div>Durum: <span id="siteStatusBadge" class="status-badge live">CANLI</span></div>
+            <button class="btn" id="toggleStatusBtn" style="width:auto; padding:10px 20px; background:var(--red);" onclick="toggleSiteStatus(true)">Sistemi Kapat (Bakım Modu)</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-emails" class="tab-content">
+        <div class="panel-card">
+          <h2 style="font-size: 1.2rem; margin-bottom: 6px;">Toplu E-Posta Gönderim Merkezi</h2>
+          <p style="color:var(--text-light); font-size:0.85rem; margin-bottom: 20px;">Resend SMTP altyapısı üzerinden tüm sisteme kurumsal duyuru geçebilirsiniz.</p>
+          
+          <div class="form-group">
+            <label>Hedef Kitle</label>
+            <select id="email-target" class="form-input" onchange="if(this.value==='custom') document.getElementById('customEmailGroup').style.display='flex'; else document.getElementById('customEmailGroup').style.display='none';">
+              <option value="all">Tüm Kayıtlı Kullanıcı Firmaları</option>
+              <option value="custom">Özel E-Posta Listesi</option>
+            </select>
+          </div>
+          <div class="form-group" id="customEmailGroup" style="display:none;">
+            <label>E-Posta Adresleri (Virgülle Ayırın)</label>
+            <input type="text" id="email-custom-list" class="form-input" placeholder="orhan@gmail.com, test@firma.com">
+          </div>
+          <div class="form-group">
+            <label>E-Posta Konusu (Subject)</label>
+            <input type="text" id="email-subject" class="form-input" placeholder="TrendRadar - Planlı Bakım Duyurusu">
+          </div>
+          <div class="form-group">
+            <label>E-Posta İçeriği (HTML Gövdesi)</label>
+            <textarea id="email-body" class="form-input" style="min-height: 150px; resize: vertical;" placeholder="Sayın Kullanıcımız, ..."></textarea>
+          </div>
+          <button class="btn" onclick="sendAdminBulkEmail()">Bülteni / Mailleri Gönder</button>
+        </div>
+      </div>
+
+      <div id="tab-logs" class="tab-content">
+        <div class="panel-card">
+          <h2 style="font-size: 1.2rem; margin-bottom: 12px;">Gerçek Zamanlı Sistem Log Kayıtları</h2>
+          <div id="logContainer" style="max-height: 400px; overflow-y:auto; background:var(--dark); padding:15px; border-radius:8px;">
+            <div class="log-row">Yükleniyor...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let adminToken = localStorage.getItem('tr_admin_token');
+    
+    window.addEventListener('DOMContentLoaded', () => {
+      if(adminToken) {
+        showDashboard();
+      }
+    });
+
+    async function handleAdminLogin() {
+      const username = document.getElementById('adm-user').value;
+      const password = document.getElementById('adm-pass').value;
+      
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({username, password})
+        });
+        const data = await res.json();
+        if(!res.ok) throw new Error(data.detail || 'Giriş başarısız.');
+        
+        localStorage.setItem('tr_admin_token', data.token);
+        adminToken = data.token;
+        showDashboard();
+      } catch(err) {
+        alert(err.message);
+      }
+    }
+
+    function showDashboard() {
+      document.getElementById('loginWrapper').style.display = 'none';
+      document.getElementById('adminContainer').classList.add('active');
+      loadAdminData();
+    }
+
+    function adminLogout() {
+      localStorage.removeItem('tr_admin_token');
+      window.location.reload();
+    }
+
+    async function loadAdminData() {
+      try {
+        const res = await fetch(`/api/admin/dashboard?token=${adminToken}`);
+        if(!res.ok) throw new Error('Oturum geçersiz.');
+        const data = await res.json();
+        
+        // 1. Bakım durumu güncellemesi
+        const badge = document.getElementById('siteStatusBadge');
+        const btn = document.getElementById('toggleStatusBtn');
+        if(data.maintenance_mode) {
+          badge.textContent = "BAKIM MODUNDA";
+          badge.className = "status-badge maintenance";
+          btn.textContent = "Sistemi Canlıya Al (Normal Mod)";
+          btn.style.background = "var(--green)";
+        } else {
+          badge.textContent = "CANLI";
+          badge.className = "status-badge live";
+          btn.textContent = "Sistemi Kapat (Bakım Modu)";
+          btn.style.background = "var(--red)";
+        }
+        
+        // 2. Kullanıcı tablosu
+        document.getElementById('usersTableBody').innerHTML = data.users.map(u => `
+          <tr><td>${u.id}</td><td><strong style="color:var(--orange)">${u.company_count}</strong> firma</td><td>${u.sector}</td></tr>
+        `).join('') || '<tr><td colspan="3">Kullanıcı bulunamadı.</td></tr>';
+        
+        // 3. Firma tablosu
+        document.getElementById('companiesTableBody').innerHTML = data.companies.map(c => `
+          <tr><td><strong>${c.name}</strong></td><td>${c.sector||'-'}</td><td>${c.email||'-'}</td><td>${c.id}</td></tr>
+        `).join('') || '<tr><td colspan="4">Firma bulunamadı.</td></tr>';
+        
+        // 4. Logları yazdır
+        document.getElementById('logContainer').innerHTML = data.logs.map(l => `
+          <div class="log-row">
+            <span class="log-time">[${l.time}]</span>
+            <span class="log-user">${l.user}:</span>
+            <span>${l.action}</span>
+          </div>
+        `).join('');
+        
+      } catch(err) {
+        adminLogout();
+      }
+    }
+
+    async function toggleSiteStatus() {
+      const badge = document.getElementById('siteStatusBadge');
+      const targetStatus = badge.textContent === "CANLI"; // Eğer canlıysa kapatmak istiyordur.
+      
+      try {
+        const res = await fetch('/api/admin/toggle-status', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({status: targetStatus, token: adminToken})
+        });
+        if(!res.ok) throw new Error('Durum değiştirilemedi.');
+        loadAdminData();
+      } catch(err) {
+        alert(err.message);
+      }
+    }
+
+    async function sendAdminBulkEmail() {
+      const target = document.getElementById('email-target').value;
+      const custom_emails = document.getElementById('email-custom-list').value;
+      const subject = document.getElementById('email-subject').value;
+      const body = document.getElementById('email-body').value;
+      
+      if(!subject || !body) { alert('Konu ve içerik boş bırakılamaz.'); return; }
+      
+      try {
+        const res = await fetch('/api/admin/send-bulk-email', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({token: adminToken, target, custom_emails, subject, body})
+        });
+        const data = await res.json();
+        if(!res.ok) throw new Error(data.detail || 'Mail gönderilemedi.');
+        alert(data.message);
+        loadAdminData();
+      } catch(err) {
+        alert(err.message);
+      }
+    }
+
+    function switchTab(tabId, el) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+      document.getElementById('tab-' + tabId).classList.add('active');
+      el.classList.add('active');
+    }
+  </script>
+</body>
+</html>

@@ -591,3 +591,145 @@ def get_github_auth_url():
         return {"url": auth_url}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+from fastapi.responses import JSONResponse
+
+# Küresel admin durum değişkenleri
+is_maintenance_mode = False
+system_logs = [
+    {"time": datetime.now().strftime("%H:%M:%S"), "action": "Sistem başlatıldı.", "user": "Sistem"}
+]
+
+def add_log(action: str, user: str = "Admin"):
+    """Sistem log havuzuna yeni kayıt ekler"""
+    system_logs.insert(0, {
+        "time": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+        "action": action,
+        "user": user
+    })
+
+# Bakım Modu Filtresi (Middleware)
+@app.middleware("http")
+async def maintenance_middleware(request: Request, call_next):
+    global is_maintenance_mode
+    # Admin yolları ve statik admin paneli sayfası bakım modundan etkilenmesin
+    is_admin_route = request.url.path.startswith("/api/admin") or "adminpanel" in request.url.path
+    
+    if is_maintenance_mode and not is_admin_route:
+        if request.url.path.startswith("/api/"):
+            return JSONResponse(
+                status_code=503, 
+                content={"detail": "TrendRadar şu anda bakım modundadır. Lütfen daha sonra tekrar deneyiniz."}
+            )
+    return await call_next(request)
+class AdminLoginPayload(BaseModel):
+    username: str
+    password: str
+
+@app.post("/api/admin/login")
+def admin_login(payload: AdminLoginPayload):
+    env_user = os.getenv("ADMIN_USER", "admin")
+    env_pass = os.getenv("ADMIN_PASS", "admin123")
+    
+    if payload.username == env_user and payload.password == env_pass:
+        add_log("Yönetici paneline başarılı giriş yapıldı.")
+        return {"success": True, "token": "tr_admin_secure_session_token_2026"}
+    raise HTTPException(status_code=401, detail="Hatalı admin kullanıcı adı veya şifre.")
+
+@app.get("/api/admin/dashboard")
+def get_admin_dashboard(token: str = None):
+    # Basit token doğrulaması
+    if token != "tr_admin_secure_session_token_2026":
+        raise HTTPException(status_code=403, detail="Yetkisiz erişim.")
+        
+    global is_maintenance_mode, system_logs
+    db = get_db()
+    
+    # Tüm firmaları çekelim
+    companies_res = db.table("companies").select("*").execute()
+    companies_list = companies_res.data if hasattr(companies_res, 'data') else []
+    
+    # Firmalardan benzersiz kullanıcı maillerini/ID'lerini derive edelim (Alternatif kullanıcı listeleme)
+    # Gerçek kullanıcıları Supabase auth admin API yetkisi olmadan listelemenin en kararlı yolu
+    users_dict = {}
+    for comp in companies_list:
+        u_id = comp.get("user_id", "Bilinmeyen Kullanıcı")
+        if u_id not in users_dict:
+            users_dict[u_id] = {"id": u_id, "company_count": 0, "sector": comp.get("sector", "-")}
+        users_dict[u_id]["company_count"] += 1
+        
+    return {
+        "maintenance_mode": is_maintenance_mode,
+        "logs": system_logs[:50], # Son 50 log kaydı
+        "companies": companies_list,
+        "users": list(users_dict.values())
+    }
+
+class StatusPayload(BaseModel):
+    status: bool
+    token: str
+
+@app.post("/api/admin/toggle-status")
+def toggle_site_status(payload: StatusPayload):
+    if payload.token != "tr_admin_secure_session_token_2026":
+        raise HTTPException(status_code=403, detail="Yetkisiz erişim.")
+    global is_maintenance_mode
+    is_maintenance_mode = payload.status
+    state_str = "KAPATILDI (Bakım Modu Aktif)" if is_maintenance_mode else "AÇILDI (Canlı Mod)"
+    add_log(f"Site erişim durumu değiştirildi: {state_str}")
+    return {"success": True, "maintenance_mode": is_maintenance_mode}
+
+class BulkEmailPayload(BaseModel):
+    token: str
+    target: str # "all" veya "custom"
+    custom_emails: str = ""
+    subject: str
+    body: str
+
+@app.post("/api/admin/send-bulk-email")
+def send_bulk_email(payload: BulkEmailPayload):
+    if payload.token != "tr_admin_secure_session_token_2026":
+        raise HTTPException(status_code=403, detail="Yetkisiz erişim.")
+        
+    import smtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+    
+    # Hedef e-postaları belirleyelim
+    targets = []
+    if payload.target == "all":
+        db = get_db()
+        comp_res = db.table("companies").select("email").execute()
+        comp_data = comp_res.data if hasattr(comp_res, 'data') else []
+        targets = list(set([c["email"] for c in comp_data if c.get("email")]))
+    else:
+        targets = [e.strip() for e in payload.custom_emails.split(",") if e.strip()]
+        
+    if not targets:
+        raise HTTPException(status_code=400, detail="Gönderilecek geçerli e-posta adresi bulunamadı.")
+        
+    smtp_password = os.getenv("RESEND_API_KEY")
+    sent_count = 0
+    
+    try:
+        with smtplib.SMTP_SSL('smtp.resend.com', 465) as server:
+            server.login('resend', smtp_password)
+            
+            for email in targets:
+                msg = MIMEMultipart()
+                msg['From'] = "TrendRadar Yönetim <onboarding@resend.dev>"
+                msg['To'] = email
+                msg['Subject'] = payload.subject
+                
+                html = f"""
+                <div style="font-family:sans-serif; padding:20px; color:#1e293b;">
+                  {payload.body.replace('\n', '<br>')}
+                </div>
+                """
+                msg.attach(MIMEText(html, 'html'))
+                server.sendmail("onboarding@resend.dev", email, msg.as_string())
+                sent_count += 1
+                
+        add_log(f"Toplu E-Posta Gönderildi. Konu: {payload.subject} ({sent_count} Adet)")
+        return {"success": True, "message": f"{sent_count} adet e-posta başarıyla gönderildi."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
