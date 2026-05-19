@@ -620,6 +620,22 @@
         
         </div>
 
+
+        <div class="panel" style="grid-column: 1 / -1; margin-bottom:0; width:100%; padding:20px;">
+          <div class="panel-header" style="margin-bottom:14px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <div class="panel-title">Gerçek Ürün Görselleri</div>
+            </div>
+          </div>
+          <div style="font-size:0.75rem; color:var(--slate-light); margin-top:-10px; margin-bottom:16px;">
+            * Google Görseller'deki en popüler ilk 5 sonuç gösterilmektedir.
+          </div>
+          <div id="trendImagesGallery" style="display:grid; grid-template-columns: repeat(5, 1fr); gap:16px;">
+            <span style="color:var(--slate-light); font-size:0.8rem;">Görseller Google üzerinden çekiliyor...</span>
+          </div>
+        </div>
+
        
 
       </div>
@@ -1236,7 +1252,35 @@ async function renderTrendChart() {
       ];
 
 
+      // YENİ: Google Custom Search API ile Gerçek Görselleri Çekme
+      const gallery = document.getElementById('trendImagesGallery');
+      gallery.innerHTML = '<span style="color:var(--slate-light); font-size:0.8rem;">Görseller Google üzerinden çekiliyor, lütfen bekleyin...</span>';
+
+      // Anahtarların başarıyla eklendi
+      const GOOGLE_API_KEY = 'AIzaSyB5qrcpdo2VuZEx4Vy6EFE4a2AIwn_xB9A'; 
+      const GOOGLE_CX = 'e5ba96a5b310d4b84';
+
+      // Google'a "Sadece resim (image) bul ve ilk 5 tanesini (num=5) getir" diyoruz.
+      const searchUrl = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(kw)}&cx=${GOOGLE_CX}&key=${GOOGLE_API_KEY}&searchType=image&num=5`;
       
+      fetch(searchUrl)
+        .then(response => response.json())
+        .then(data => {
+          if (data.items && data.items.length > 0) {
+            const imagesHtml = data.items.map((item, index) => `
+              <div style="border-radius:12px; overflow:hidden; border:1px solid var(--border); aspect-ratio: 1/1; background:var(--bg);">
+                <img src="${item.link}" style="width:100%; height:100%; object-fit:cover; transition:transform 0.3s ease;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" alt="${kw} arama sonucu ${index+1}">
+              </div>
+            `).join('');
+            gallery.innerHTML = imagesHtml;
+          } else {
+            gallery.innerHTML = '<span style="color:var(--slate-light); font-size:0.8rem;">Bu kelime için uygun görsel bulunamadı.</span>';
+          }
+        })
+        .catch(err => {
+          console.error("Google API Hatası:", err);
+          gallery.innerHTML = '<span style="color:var(--red); font-size:0.8rem;">Görseller çekilirken bir hata oluştu (API ayarlarınız eksik olabilir veya günlük limit dolmuş olabilir).</span>';
+        });
 
 
       const trendsHtml = suffixes.map((s, index) => `
