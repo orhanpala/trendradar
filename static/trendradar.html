@@ -463,9 +463,17 @@
           <div class="chart-area"><canvas id="mainChart"></canvas></div>
         </div>
         <div class="panel">
-          <div class="panel-header">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-            <div class="panel-title">Urun Listesi</div>
+          <div class="panel-header" style="justify-content: space-between; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+              <div class="panel-title">Ürün Listesi & Stoklar</div>
+            </div>
+            
+            <button onclick="document.getElementById('syncCsvFile').click()" style="background:var(--orange-light); color:var(--orange); border:1px solid rgba(255,122,0,0.3); padding:6px 12px; border-radius:6px; font-size:0.75rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; transition:all 0.2s;" onmouseover="this.style.background='var(--orange)'; this.style.color='white'" onmouseout="this.style.background='var(--orange-light)'; this.style.color='var(--orange)'">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Akıllı CSV ile Senkronize Et
+            </button>
+            <input type="file" id="syncCsvFile" accept=".csv" style="display:none" onchange="handleSmartCsvSync(event)">
           </div>
           <div style="margin-bottom:12px"></div>
           <div id="productList" style="max-height:260px;overflow-y:auto;"><div class="empty-state">Yukleniyor...</div></div>
@@ -944,20 +952,16 @@ async function updateProductInfo(id, name, currentPrice, currentStock) {
   if (newPrice === null || newPrice.trim() === "") return;
 
   try {
-    const res = await fetch(`/api/products/${id}`, {
+    const res = await apiFetch(`/api/products/${id}`, {
       method: 'PUT',
-      headers: authHeaders(),
       body: JSON.stringify({
         stock: parseInt(newStock),
         price: parseFloat(newPrice)
       })
     });
     
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.detail || 'Güncelleme başarısız');
-    
-    toast('Ürün başarıyla güncellendi!', 'success');
-    loadKokpit(); // Grafikleri ve listeyi yeni verilere göre otomatik yeniler
+    toast(res.message || 'Ürün başarıyla güncellendi!', 'success');
+    loadKokpit(); 
   } catch (err) {
     toast(err.message, 'error');
   }
@@ -1270,6 +1274,53 @@ async function loadGodMode() {
       ? lowStock.data.map(p => `<tr><td style="font-weight:600">${p.name}</td><td>${p.category||'-'}</td><td style="font-family:'DM Mono',monospace">${Number(p.price).toLocaleString('tr-TR')} TL</td><td style="font-family:'DM Mono',monospace;font-weight:700;color:var(--red)">${p.stock}</td><td><span class="metric-badge badge-red">Kritik</span></td></tr>`).join('')
       : `<tr><td colspan="5" style="text-align:center;color:var(--slate-light)">Kritik stok alti urun bulunmuyor.</td></tr>`;
   } catch(e) { toast('God Mode yuklenemedi: ' + e.message, 'error'); }
+}
+function handleSmartCsvSync(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!state.selectedCompanyId) { toast('Lütfen önce sol üstten bir firma seçin.', 'error'); return; }
+
+  toast('CSV analiz ediliyor, lütfen bekleyin...', 'info'); // Toast ile bilgi ver
+  
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const lines = e.target.result.split('\n').filter(l => l.trim());
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      
+      const products = lines.slice(1).map(line => {
+        const vals = line.split(','); const obj = {};
+        headers.forEach((h, i) => obj[h] = vals[i]?.trim() || '');
+        return {
+          name: obj.name,
+          category: obj.category || '',
+          price: parseFloat(obj.price) || 0,
+          stock: parseInt(obj.stock) || 0
+        };
+      }).filter(p => p.name);
+
+      if (products.length === 0) { throw new Error("CSV dosyasında geçerli ürün bulunamadı."); }
+
+      // Python arka planına (Akıllı Senkronizasyon) gönderiyoruz
+      const res = await apiFetch('/api/products/sync', {
+        method: 'POST',
+        body: JSON.stringify({
+          company_id: state.selectedCompanyId,
+          products: products
+        })
+      });
+      
+      toast(res.message || 'Senkronizasyon başarılı!', 'success');
+      loadKokpit(); // Sayfayı yenilemeye gerek kalmadan grafikleri ve listeyi günceller
+      
+    } catch (err) {
+      toast('Senkronizasyon hatası: ' + err.message, 'error');
+    }
+    
+    // Aynı dosyayı tekrar seçebilmesi için inputu sıfırlıyoruz
+    event.target.value = '';
+  };
+  reader.readAsText(file);
 }
 
 init();
