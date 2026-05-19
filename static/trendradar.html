@@ -428,9 +428,9 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/></svg>
           </div>
           <div>
-            <div class="metric-label">Aktif Urun Envanteri</div>
+            <div class="metric-label">Aktif Ürün Envanteri</div>
             <div class="metric-value" id="m-products">—</div>
-            <span class="metric-badge badge-green" id="m-products-sub">Yukleniyor...</span>
+            <span class="metric-badge badge-green" id="m-products-sub">Yükleniyor...</span>
           </div>
         </div>
         <div class="metric-card">
@@ -440,7 +440,7 @@
           <div>
             <div class="metric-label">Toplam Stok Birimi</div>
             <div class="metric-value" id="m-stock">—</div>
-            <span class="metric-badge badge-gray">Tum kategoriler</span>
+            <span class="metric-badge badge-gray">Tüm kategoriler</span>
           </div>
         </div>
         <div class="metric-card">
@@ -448,16 +448,16 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="#FF7A00" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
           </div>
           <div>
-            <div class="metric-label">Kritik Stok Alti</div>
+            <div class="metric-label">Kritik Stok Altı</div>
             <div class="metric-value" id="m-lowstock">—</div>
-            <span class="metric-badge badge-red" id="m-lowstock-sub">Yukleniyor...</span>
+            <span class="metric-badge badge-red" id="m-lowstock-sub">Yükleniyor...</span>
           </div>
         </div>
       </div>
       <div class="bottom-grid">
         <div class="panel">
           <div class="tabs">
-            <div class="tab active" onclick="switchTab(this,'stock')">Stok Dagilimi</div>
+            <div class="tab active" onclick="switchTab(this,'stock')">Stok Dağılımı</div>
             <div class="tab" onclick="switchTab(this,'price')">Fiyat Analizi</div>
           </div>
           <div class="chart-area"><canvas id="mainChart"></canvas></div>
@@ -483,14 +483,14 @@
 
     <div class="page" id="page-otonom">
       <div class="section-title">Otonom Aksiyon Tavsiyeleri</div>
-      <p style="font-size:0.82rem;color:var(--slate);margin-bottom:20px;">Gemini yapay zeka motoru, secili firmanin urun verisini analiz ederek aksiyon tavsiyeleri uretir.</p>
+      <p style="font-size:0.82rem;color:var(--slate);margin-bottom:20px;">Gemini yapay zeka motoru, secili firmanin ürünn verisini analiz ederek aksiyon tavsiyeleri üretir.</p>
       <div class="ai-controls">
         <div class="ai-select-wrap">
           <label class="form-label">Analiz Turu</label>
           <select class="form-select" id="analysisType">
-            <option value="fiyatlandirma">Fiyatlandirma Optimizasyonu</option>
-            <option value="stok">Stok Yonetimi Tavsiyeleri</option>
-            <option value="genel">Genel Strateji Ozeti</option>
+            <option value="fiyatlandirma">Fiyatlandırma Optimizasyonu</option>
+            <option value="stok">Stok Yönetimi Tavsiyeleri</option>
+            <option value="genel">Genel Strateji Özeti</option>
           </select>
         </div>
         <button class="form-submit" onclick="runAiAnalysis()" id="aiBtn">
@@ -498,21 +498,21 @@
           Analizi Calistir
         </button>
       </div>
-      <div class="ai-result-box loading" id="aiResult">Analiz baslatilmadi. Yukaridan bir tur secip "Analizi Calistir" butonuna basin.</div>
+      <div class="ai-result-box loading" id="aiResult">Analiz Başlatılmadı. Yukarıdan bir tür seçip "Analizi Çalıştır" butonuna basın.</div>
     </div>
 
     <div class="page" id="page-trend">
-      <div class="section-title">Yeni Trend Radari</div>
+      <div class="section-title">Yeni Trend Radarı</div>
       <div class="trend-search">
         <input class="trend-input" id="trendInput" type="text" placeholder="Anahtar kelime: elektronik, gida, tekstil..." onkeydown="if(event.key==='Enter')renderTrendChart()">
-        <button class="trend-btn" onclick="renderTrendChart()">Analizi Baslat</button>
+        <button class="trend-btn" onclick="renderTrendChart()">Analizi Başlat</button>
       </div>
       <div class="panel">
         <div class="panel-header">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-          <div class="panel-title" id="trendPanelTitle">Talep Trend Grafigi</div>
+          <div class="panel-title" id="trendPanelTitle">Talep Trend Grafiği</div>
         </div>
-        <div class="panel-sub" id="trendPanelSub">Bir anahtar kelime girerek analizi baslatiniz.</div>
+        <div class="panel-sub" id="trendPanelSub">Bir anahtar kelime girerek analizi başlatınız.</div>
         <div class="chart-area"><canvas id="trendChart"></canvas></div>
       </div>
     </div>
@@ -875,7 +875,8 @@ function showPage(name, el) {
 async function loadKokpit() {
   if (!state.selectedCompanyId) return;
   try {
-    const data = await apiFetch(`/api/companies/${state.selectedCompanyId}/products`);
+    // ÇÖZÜM 2: Sonuna rastgele bir zaman damgası ekleyerek tarayıcının eski veriyi (cache) göstermesini engelliyoruz
+const data = await apiFetch(`/api/companies/${state.selectedCompanyId}/products?t=${new Date().getTime()}`);
     state.products = data.data;
     const totalStock = state.products.reduce((s, p) => s + (p.stock || 0), 0);
     const low = state.products.filter(p => p.stock < 10);

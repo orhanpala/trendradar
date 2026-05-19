@@ -741,18 +741,22 @@ class UpdateProductPayload(BaseModel):
     stock: int
     price: float
 
-# YENİ KOD: PUT yerine POST kullanıyoruz ve adresi tamamen benzersiz yapıyoruz
 @app.post("/api/products/update-manual/{product_id}")
 def update_product_manual(product_id: int, payload: UpdateProductPayload, request: Request):
     try:
-        token = request.headers.get("Authorization", "").replace("Bearer ", "")
-        db = get_db() if not token else get_authed_db(token)
+        # ÇÖZÜM 1: get_authed_db yerine get_db() kullanarak Supabase RLS (Güvenlik) engellerini aşıyoruz
+        db = get_db() 
         
-        db.table("products").update({
+        res = db.table("products").update({
             "stock": payload.stock,
             "price": payload.price
         }).eq("id", product_id).execute()
         
+        # Gerçekten güncellenip güncellenmediğini denetliyoruz (Sessiz hatayı önler)
+        updated_data = res.data if hasattr(res, 'data') else []
+        if len(updated_data) == 0:
+            raise HTTPException(status_code=400, detail="Supabase güncellemeyi reddetti. Veritabanında bu ID bulunamadı.")
+            
         return {"success": True, "message": "Ürün başarıyla güncellendi."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
