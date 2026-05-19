@@ -579,3 +579,15 @@ def get_user_details(request: Request):
         return {"email": user_res.user.email}
     except Exception as e:
         raise HTTPException(status_code=401, detail=str(e))
+@app.get("/api/auth/github-url")
+def get_github_auth_url():
+    try:
+        supabase_url = os.getenv("SUPABASE_URL")
+        # Test ediyorsan localhost kalabilir, canlıya alırken kendi sitenin login sayfasının linki olmalı.
+        redirect_url = "http://localhost:8000/login.html" 
+        
+        # Provider parametresini "github" olarak ayarladık
+        auth_url = f"{supabase_url}/auth/v1/authorize?provider=github&redirect_to={redirect_url}"
+        return {"url": auth_url}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
