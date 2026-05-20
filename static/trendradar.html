@@ -881,16 +881,16 @@ async function setupJuryDemoData() {
     // 2. Jürinin sistemdeki zekayı tam ölçebilmesi için hazır senaryo ürün seti
     // (Dikkat: Bazı ürünlerin stokları < 10 bırakıldı ki kritik stok mekanizmanız hemen tetiklensin)
     const demoProducts = [
-      { company_id: newCompanyId, name: "Kutup Kaşifi Kamp Çadırı (4 Kişilik)", category: "Outdoor", price: 4250.00, stock: 4 }, // Kritik
+      { company_id: newCompanyId, name: "Kutup Kaşifi Kamp Çadırı (4 Kişilik)", category: "Outdoor", price: 4250.00, stock: 4 },
       { company_id: newCompanyId, name: "Akıllı Doğa Sporları Saati V2", category: "Elektronik", price: 8900.00, stock: 25 },
-      { company_id: newCompanyId, name: "Ultra Hafif Titanyum Kamp Ocağı", category: "Outdoor", price: 1250.00, stock: 8 }, // Kritik
+      { company_id: newCompanyId, name: "Ultra Hafif Titanyum Kamp Ocağı", category: "Outdoor", price: 1250.00, stock: 8 },
       { company_id: newCompanyId, name: "Güneş Enerjili Powerbank 30.000 mAh", category: "Elektronik", price: 1850.00, stock: 45 },
-      { company_id: newCompanyId, name: "Profesyonel Dağcılık Çantası 75L", category: "Outdoor", price: 3400.00, stock: 2 }, // Kritik
+      { company_id: newCompanyId, name: "Profesyonel Dağcılık Çantası 75L", category: "Outdoor", price: 3400.00, stock: 2 },
       { company_id: newCompanyId, name: "Karbon Fiber Profesyonel Baton Seti", category: "Outdoor", price: 950.00, stock: 60 },
-      { company_id: company_id, newCompanyId, name: "Termal Su Geçirmez Akıllı Mont", category: "Giyim", price: 5600.00, stock: 12 },
-      { company_id: newCompanyId, name: "Akıllı Akustik LED Kamp Lambası", category: "Elektronik", price: 1450.00, stock: 5 }, // Kritik
+      { company_id: newCompanyId, name: "Termal Su Geçirmez Akıllı Mont", category: "Giyim", price: 5600.00, stock: 12 },
+      { company_id: newCompanyId, name: "Akıllı Akustik LED Kamp Lambası", category: "Elektronik", price: 1450.00, stock: 5 },
       { company_id: newCompanyId, name: "Merinos Yünü Teknik Outdoor Çorap", category: "Giyim", price: 350.00, stock: 120 },
-      { company_id: newCompanyId, name: "Katlanabilir Güneş Paneli 100W", category: "Elektronik", price: 3200.00, stock: 3 } // Kritik
+      { company_id: newCompanyId, name: "Katlanabilir Güneş Paneli 100W", category: "Elektronik", price: 3200.00, stock: 3 }
     ];
     
     // 3. Ürünleri backend'deki toplu insert (bulk) endpointine gönderiyoruz
