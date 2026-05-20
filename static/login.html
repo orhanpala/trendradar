@@ -183,16 +183,16 @@
 <div class="login-wrap">
   <div class="logo-area">
     <div class="logo-mark">trend<span>Radar</span></div>
-    <div class="logo-sub">B2B Pazar Zekasi Platformu</div>
+    <div class="logo-sub">B2B Pazar Trend Platformu</div>
   </div>
 
   <div class="login-card">
-    <div class="card-title">Hosgeldiniz</div>
-   <div class="card-sub">Devam etmek icin giris yapin.</div>
+    <div class="card-title">Hoşgeldiniz</div>
+   <div class="card-sub">Devam etmek için giriş yapın.</div>
 
 <div class="auth-tabs">
-  <div class="auth-tab active" onclick="switchTab('login')">Giris Yap</div>
-  <div class="auth-tab" onclick="switchTab('register')">Kayit Ol</div>
+  <div class="auth-tab active" onclick="switchTab('login')">Giriş Yap</div>
+  <div class="auth-tab" onclick="switchTab('register')">Kayıt Ol</div>
 </div>
 
     <div id="loginFields">
@@ -202,7 +202,7 @@
     </div>
 
     <div class="form-group">
-      <label class="form-label">Sifre</label>
+      <label class="form-label">Şifre</label>
       <input class="form-input" id="password" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()">
     </div>
     </div>
@@ -216,12 +216,16 @@
     <input class="form-input" id="reg-email" type="email" placeholder="ornek@firma.com">
   </div>
   <div class="form-group">
-    <label class="form-label">Sifre</label>
+    <label class="form-label">Şifre</label>
     <input class="form-input" id="reg-password" type="password" placeholder="En az 6 karakter">
   </div>
-  <button class="submit-btn" onclick="register()" id="registerBtn">Kayit Ol</button>
+  <button class="submit-btn" onclick="register()" id="registerBtn">Kayıt Ol</button>
 </div>
-    <button class="submit-btn" onclick="login()" id="loginBtn">Giris Yap</button>
+    <button class="submit-btn" onclick="login()" id="loginBtn">Giriş Yap</button>
+    <button type="button" onclick="loginAsJury()" style="width:100%; padding:13px; background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%); color:#ffffff; border:none; border-radius:10px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; margin-top:12px; box-shadow: 0 4px 15px rgba(139,92,246,0.3); transition: transform 0.15s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      HACKATHON 2026 JÜRİLERİ DİREKT GİRİŞ
+    </button>
     <button type="button" onclick="loginWithGoogle()" style="width:100%; padding:11px; background:#ffffff; color:#1e293b; border:1px solid #e2e8f0; border-radius:9px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; margin-top:12px;">
   <svg width="18" height="18" viewBox="0 0 24 24">
     <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v3.92h6.61c-.29 1.53-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-8.58z"/>
@@ -244,7 +248,7 @@
 
     <div class="info-row">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-      Bu platform yetkili kullanicilara ozgudur. Erisim icin sistem yoneticinizle iletisime gecin.
+      
     </div>
   </div>
 </div>
@@ -348,6 +352,44 @@ async function login() {
   }
 }
 
+async function loginAsJury() {
+  const btn = document.querySelector('button[onclick="loginAsJury()"]');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = 'Jüri Bağlantısı Kuruluyor...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/auth/jury-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      showError(data.detail || 'Jüri girişi başarısız.');
+      return;
+    }
+
+    // Supabase Token'ı kaydet
+    localStorage.setItem('tr_token', data.access_token);
+    
+    // Ekranda "JÜRİ" yazması için tr_user objesini manipüle ederek kaydediyoruz
+    localStorage.setItem('tr_user', JSON.stringify({ 
+      id: data.user.id, 
+      email: "JÜRİ" // Dashboard'da avatarın yanındaki isim burada belirleniyor
+    }));
+
+    window.location.href = '/dashboard';
+
+  } catch (e) {
+    showError('Sunucuya bağlanılamadı.');
+  } finally {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
+}
+
 function showError(msg) {
   const el = document.getElementById('errorBox');
   el.textContent = msg;
@@ -378,9 +420,9 @@ async function register() {
   const password = document.getElementById('reg-password').value;
   const btn = document.getElementById('registerBtn');
   if (!email || !password) { showError('Tum alanlar zorunludur.'); return; }
-  if (password.length < 6) { showError('Sifre en az 6 karakter olmalidir.'); return; }
+  if (password.length < 6) { showError('Şifre en az 6 karakter olmalıdır.'); return; }
   btn.disabled = true;
-  btn.textContent = 'Kayit yapiliyor...';
+  btn.textContent = 'Kayıt yapılıyor...';
   try {
     const res = await fetch('/api/auth/register', {
       method: 'POST',
@@ -388,17 +430,17 @@ async function register() {
       body: JSON.stringify({ email, password })
     });
     const data = await res.json();
-    if (!res.ok) { showError(data.detail || 'Kayit basarisiz.'); return; }
+    if (!res.ok) { showError(data.detail || 'Kayıt başarısız.'); return; }
     showError('Kayıt alındı! Lütfen e-posta adresinize gelen onay linkine tıklayın.');
     document.getElementById('errorBox').style.background = '#FFFBEB'; 
     document.getElementById('errorBox').style.color = '#B45309';
     document.getElementById('errorBox').style.borderLeftColor = '#10B981';
     switchTab('login');
   } catch(e) {
-    showError('Sunucuya baglanilamadi.');
+    showError('Sunucuya bağlanılamadı.');
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Kayit Ol';
+    btn.textContent = 'Kayıt Ol';
   }
 }
 </script>

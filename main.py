@@ -105,6 +105,43 @@ def login(payload: AuthPayload):
     except Exception as e:
         raise HTTPException(status_code=401, detail="Email veya sifre yanlis.")
 
+
+@app.post("/api/auth/jury-login")
+def jury_login():
+    try:
+        db = get_db()
+        jury_email = "juri@trendradar.com"
+        jury_password = "HackathonJuri2026Secure!"
+        
+        # 1. Önce giriş yapmayı deniyoruz (Hesap daha önce oluşturulmuşsa)
+        try:
+            res = db.auth.sign_in_with_password({
+                "email": jury_email,
+                "password": jury_password
+            })
+        except Exception:
+            # 2. Giriş başarısız olursa hesabı ilk kez oluşturuyoruz
+            res = db.auth.sign_up({
+                "email": jury_email,
+                "password": jury_password
+            })
+            # Kayıt sonrası hemen oturum verisini alıyoruz
+            res = db.auth.sign_in_with_password({
+                "email": jury_email,
+                "password": jury_password
+            })
+
+        return {
+            "access_token": res.session.access_token,
+            "user": {
+                "id": res.user.id,
+                "email": "JÜRİ"
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Jüri oturumu başlatılamadı. Supabase ayarlarından 'Confirm email' (E-posta doğrulama) seçeneğinin kapalı olduğundan emin olun.")
+
+
 @app.post("/api/auth/logout")
 def logout(request: Request):
     try:
