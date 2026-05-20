@@ -1250,9 +1250,7 @@ async function renderTrendChart() {
       const gallery = document.getElementById('trendImagesGallery');
       gallery.innerHTML = '<span style="color:var(--slate-light); font-size:0.8rem;">Görseller Google üzerinden çekiliyor, lütfen bekleyin...</span>';
 
-      // Anahtarların başarıyla eklendi
-      const GOOGLE_API_KEY = 'AIzaSyAkqLemqiWQjGhq6S_WOMkxLyhYrfFxT04'; 
-      const GOOGLE_CX = 'e5ba96a5b310d4b84';
+      
 
       // Google'a "Sadece resim (image) bul ve ilk 5 tanesini (num=5) getir" diyoruz.
       const searchUrl = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(kw)}&cx=${GOOGLE_CX}&key=${GOOGLE_API_KEY}&searchType=image&num=5`;
