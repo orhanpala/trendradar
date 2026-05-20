@@ -491,6 +491,23 @@
           </div>
         </div>
       </div>
+      <div id="juryQuickDemoSection" style="display:none; background: linear-gradient(145deg, #FAF5FF, #F3E8FF); border: 1px solid #D8B4FE; border-left: 5px solid #8B5CF6; border-radius: 14px; padding: 20px; margin-bottom: 24px; box-shadow: var(--card-shadow); animation: fadeUp 0.4s ease both;">
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+          <div style="flex:1; min-width:300px;">
+            <h3 style="color:#5B21B6; font-size:1rem; font-weight:800; margin-bottom:6px; display:flex; align-items:center; gap:8px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              Jüri Özel Hızlı Deneyim Modu Açıldı!
+            </h3>
+            <p style="color:#6B21A8; font-size:0.82rem; line-height:1.5; margin:0;">
+              Platformun tüm yeteneklerini (Envanter takibi, Kritik Stok Alarmları, Otonom Yapay Zeka Stratejileri ve Trend Analizleri) manuel veri yüklemekle uğraşmadan anında test edebilmeniz için aşağıdaki butona tıklayarak **otomatik bir demo mağazası ve akıllı envanter seti** kurabilirsiniz.
+            </p>
+          </div>
+          <button id="juryDemoBtn" onclick="setupJuryDemoData()" style="background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%); color:white; border:none; padding:12px 24px; border-radius:10px; font-weight:700; font-size:0.85rem; cursor:pointer; box-shadow: 0 4px 12px rgba(139,92,246,0.3); transition:all 0.2s; display:flex; align-items:center; gap:8px;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Tek Tıkla Jüri Mağazası & Envanteri Kur
+          </button>
+        </div>
+      </div>
       <div class="bottom-grid">
         <div class="panel">
           <div class="tabs">
@@ -803,6 +820,10 @@ function checkAuth() {
   document.getElementById('userAvatar').textContent = initials;
   document.getElementById('userName').textContent = state.user.email.split('@')[0];
   document.getElementById('userEmail').textContent = state.user.email;
+  if (state.user.email === "JÜRİ") {
+    const juryPanel = document.getElementById('juryQuickDemoSection');
+    if (juryPanel) juryPanel.style.display = 'block';
+  }
   return true;
 }
 
@@ -831,6 +852,77 @@ async function apiFetch(path, opts = {}) {
   if (res.status === 401) { logout(); return; }
   if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.detail || res.statusText); }
   return res.json();
+}
+
+
+// ── JÜRİ İÇİN OTOMATİK DEMO VERİ SETİ MOTORU ──
+async function setupJuryDemoData() {
+  const btn = document.getElementById('juryDemoBtn');
+  if (!btn) return;
+  
+  btn.disabled = true;
+  btn.textContent = 'Demo Ortamı Hazırlanıyor...';
+  
+  try {
+    // 1. Backend'e istek atarak "Jüri Özel Mağazası" şirketini oluşturuyoruz
+    const companyRes = await apiFetch('/api/companies', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: "Jüri Özel Mağazası",
+        sector: "Outdoor & Teknoloji",
+        email: "juri@trendradar.com",
+        phone: "+90 212 555 2026",
+        notes: "Hackathon Değerlendirmesi Otomatik Akıllı Envanteri"
+      })
+    });
+    
+    const newCompanyId = companyRes.data.id;
+    
+    // 2. Jürinin sistemdeki zekayı tam ölçebilmesi için hazır senaryo ürün seti
+    // (Dikkat: Bazı ürünlerin stokları < 10 bırakıldı ki kritik stok mekanizmanız hemen tetiklensin)
+    const demoProducts = [
+      { company_id: newCompanyId, name: "Kutup Kaşifi Kamp Çadırı (4 Kişilik)", category: "Outdoor", price: 4250.00, stock: 4 }, // Kritik
+      { company_id: newCompanyId, name: "Akıllı Doğa Sporları Saati V2", category: "Elektronik", price: 8900.00, stock: 25 },
+      { company_id: newCompanyId, name: "Ultra Hafif Titanyum Kamp Ocağı", category: "Outdoor", price: 1250.00, stock: 8 }, // Kritik
+      { company_id: newCompanyId, name: "Güneş Enerjili Powerbank 30.000 mAh", category: "Elektronik", price: 1850.00, stock: 45 },
+      { company_id: newCompanyId, name: "Profesyonel Dağcılık Çantası 75L", category: "Outdoor", price: 3400.00, stock: 2 }, // Kritik
+      { company_id: newCompanyId, name: "Karbon Fiber Profesyonel Baton Seti", category: "Outdoor", price: 950.00, stock: 60 },
+      { company_id: company_id, newCompanyId, name: "Termal Su Geçirmez Akıllı Mont", category: "Giyim", price: 5600.00, stock: 12 },
+      { company_id: newCompanyId, name: "Akıllı Akustik LED Kamp Lambası", category: "Elektronik", price: 1450.00, stock: 5 }, // Kritik
+      { company_id: newCompanyId, name: "Merinos Yünü Teknik Outdoor Çorap", category: "Giyim", price: 350.00, stock: 120 },
+      { company_id: newCompanyId, name: "Katlanabilir Güneş Paneli 100W", category: "Elektronik", price: 3200.00, stock: 3 } // Kritik
+    ];
+    
+    // 3. Ürünleri backend'deki toplu insert (bulk) endpointine gönderiyoruz
+    await apiFetch('/api/products/bulk', {
+      method: 'POST',
+      body: JSON.stringify(demoProducts)
+    });
+    
+    // 4. Şirketler listesini yeniden yükle, yeni şirketi seç ve kokpiti güncelle
+    const companiesData = await apiFetch('/api/companies');
+    state.companies = companiesData.data;
+    state.selectedCompanyId = newCompanyId;
+    
+    // Mağaza seçim dropdown listesini yenile
+    renderStoreDropdown();
+    
+    // Kokpit verilerini, grafikleri ve listeyi sıfırdan güvenle çizdir
+    await loadKokpit();
+    
+    // Yeni kritik stok durumları için bildirimleri otonom olarak üret
+    await generateAutoNotifications();
+    
+    toast('Demo veri seti saniyeler içinde kuruldu! Sistem şu an tamamen canlı ve test edilebilir.', 'success');
+    
+    // Başarıyla kurulduktan sonra paneli şık bir şekilde gizleyelim
+    document.getElementById('juryQuickDemoSection').style.display = 'none';
+    
+  } catch (err) {
+    toast('Demo veri kurulum hatası: ' + err.message, 'error');
+    btn.disabled = false;
+    btn.textContent = 'Tek Tıkla Jüri Mağazası & Envanteri Kur';
+  }
 }
 
 // ── INIT ──
