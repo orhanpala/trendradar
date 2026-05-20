@@ -236,6 +236,20 @@
 
   /* WIZARD (SIHIRBAZ) TASARIMI */
   .wizard-container { background: var(--white); border: 1px solid var(--border); border-radius: 16px; padding: 32px 40px; box-shadow: var(--card-shadow); max-width: 800px; margin: 0 auto; }
+  /* Firma Sihirbazını Dikey ve Yatayda Tam Merkeze Alır */
+#page-firma.active {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 130px); /* Üst menü ve padding boşluklarını düşer */
+}
+
+/* Kartın genişliğini korumasını sağlar */
+#page-firma .wizard-container {
+  width: 100%;
+  margin: 0 auto;
+}
   .wizard-header { display: flex; justify-content: space-between; position: relative; margin-bottom: 40px; }
   .wizard-header::before { content: ''; position: absolute; top: 14px; left: 0; right: 0; height: 2px; background: var(--border); z-index: 1; }
   .wizard-step { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 8px; background: var(--white); padding: 0 10px; }
